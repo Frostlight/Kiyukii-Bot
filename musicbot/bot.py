@@ -653,10 +653,10 @@ class MusicBot(discord.Client):
         if len(game_name) > 0:
             game = discord.Game(name=game_name)
             await self.change_status(game=game)
-            return Response("Kiyu is now playing " + game_name) 
+            return Response("Kiyu is now playing %s." % (game_name)) 
         else:
             await self.change_status(game=None)
-            return Response("Kiyu is no longer playing") 
+            return Response("Kiyu is no longer playing.") 
         
     async def cmd_help(self, command=None):
         """
@@ -855,7 +855,7 @@ class MusicBot(discord.Client):
         """
 
         if not channel.permissions_for(server.me).change_nicknames:
-            raise exceptions.CommandError("Unable to change nickname: no permission.")
+            raise exceptions.CommandError("Kiyu couldn't change nickname: no permission.")
 
         nick = ' '.join([nick, *leftover_args])
 
