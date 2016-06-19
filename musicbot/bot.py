@@ -226,7 +226,7 @@ class MusicBot(discord.Client):
             traceback.print_exc()
 
     async def on_ready(self):
-        print('\rConnected!  AinnieBot v%s\n' % BOTVERSION)
+        print('\rConnected!  KiyukiiBot v%s\n' % BOTVERSION)
 
         if self.config.owner_id == self.user.id:
             raise exceptions.HelpfulError(
@@ -368,12 +368,12 @@ class MusicBot(discord.Client):
                 print(remember)
                 endtimer = self.safe_send_message(
                     message.channel, message.author.mention + ", your timer for " + str(seconds) + 
-                        " seconds has expired! I was instructed to remind you about `" + remember + "`!",
+                        " seconds has expired! Kiyu was instructed to remind you about `" + remember + "`!",
                     expire_in=0,
                     also_delete=None
                 )
                 await self.safe_send_message(
-                    message.channel, message.author.mention + ", I will remind you about `" + 
+                    message.channel, message.author.mention + ", Kiyu will remind you about `" + 
                         remember + "` in " + str(seconds) + " seconds!",
                     expire_in=0,
                     also_delete=None
@@ -396,18 +396,15 @@ class MusicBot(discord.Client):
                 await endtimer
         except ValueError:
             # Seconds given wasn't a number
-            return Response("That's not what I expected. The format is `%stimer [seconds] " \
-                "[optional reminder message].`" % (self.config.command_prefix), delete_after=20)
-        
-        
-
+            return Response("That's not what Kiyu expected. The format is `%stimer [seconds] " \
+                "[optional reminder message]`" % (self.config.command_prefix))
         
     async def cmd_8ball(self):
         """
         Usage:
             {command_prefix}8ball
 
-        Ask Ainnie a yes or no question
+        Ask Kiyu a yes or no question
         """
     
         answers = ["It is certain",
@@ -415,54 +412,64 @@ class MusicBot(discord.Client):
             "Without a doubt!",
             "Yes, definitely!!",
             "You can count on it!",
-            "As I see it yes",
+            "As Kiyu see it yes",
             "Most likely",
             "Outlook good",
             "Yes",
             "Signs point to yes",
             "Reply hazy try again",
             "Ask again later",
-            "I don't want to tell you now",
-            "I can't predict now",
+            "Kiyu doesn't want to tell you now",
+            "Kiyu can't predict now",
             "Concentrate and ask again",
             "Don't count on it",
-            "My reply is no",
-            "My sources say no",
+            "Kiyu's reply is no",
+            "Kiyu's sources say no",
             "Outlook not so good",
             "Very doubtful"]
         
-        return Response(random.choice(answers), delete_after=20) 
+        return Response(random.choice(answers)) 
         
     async def cmd_dot(self):
         """
         Usage:
             {command_prefix}dot
 
-        Makes Ainnie-Bot send a dot
+        Makes bot send a dot
         """
 
-        return Response(".", delete_after=20)   
+        return Response(".")   
+        
+    async def cmd_heart(self):
+        """
+        Usage:
+            {command_prefix}heart
+
+        Makes Kiyukii-Bot send a heart
+        """
+
+        return Response("<3")  
     
     async def cmd_tsun(self):
         """
         Usage:
             {command_prefix}tsun
 
-        Makes Ainnie-Bot be tsundere
+        Makes bot be tsundere
         """
 
         tsundereLine = [
             'H-hmph!',
-            'Don\'t misunderstand, it\'s not like I like you or anything...',
+            'Don\'t misunderstand, it\'s not like Kiyu likes you or anything...',
             'Are you stupid!?',
-            'I\'m just here because I had nothing else to do!',
+            'Kiyu is just here because Kiyu had nothing else to do!',
             'T-Tch! S-Shut up!',
-            'N-No, it\'s not like I did it for you! I did it because I had freetime, that\'s all!',
+            'N-No, it\'s not like Kiyu did it for you! Kiyu did it because Kiyu had freetime, that\'s all!',
             '...T-Thanks...',
             'Can you be any more clueless!?!',
-            'Hey! It\'s a privilege to even be able to talk to me! You should be honored!']
+            'Hey! It\'s a privilege to even be able to talk to Kiyu! You should be honored!']
             
-        return Response(random.choice(tsundereLine), delete_after=20) 
+        return Response(random.choice(tsundereLine)) 
     
     async def cmd_kiyu(self):
         """
@@ -483,14 +490,14 @@ class MusicBot(discord.Client):
             'http://i.imgur.com/TquSU8v.jpg',
             'http://i.imgur.com/YdPGfmS.jpg']
             
-        return Response("I'm not Kiyukii-Bot\n" + random.choice(kiyu), delete_after=20) 
+        return Response("Kiyu ♪♪\n" + random.choice(kiyu)) 
         
     async def cmd_honk(self):
         """
         Usage:
             {command_prefix}honk
 
-        Makes Ainnie-Bot send a honk command
+        Sends a Chen honk picture
         """
         
         honk = [
@@ -507,55 +514,55 @@ class MusicBot(discord.Client):
             'http://i.imgur.com/kcAhZYE.png',
             'http://i.imgur.com/Yi5WEYO.jpg']
 
-        return Response("Honk honk!\n" + random.choice(honk), delete_after=20)
+        return Response("Honk honk!\n" + random.choice(honk))
         
     async def cmd_cat(self):
         """
         Usage:
             {command_prefix}cat
 
-        Makes Ainnie-Bot send a cat pictures
+        Sends a cat picture
         """
         resp = requests.get('http://thecatapi.com/api/images/get?format=xml&results_per_page=1')
         
         if resp.status_code != 200:
             # This means something went wrong.
-            return Response("I couldn't get any cat gifs", delete_after=20)
+            return Response("Kiyu couldn't get any cat gifs")
         
         xml = untangle.parse(resp.text)
-        return Response("Nyaa〜\n" + xml.response.data.images.image.url.cdata, delete_after=20)  
+        return Response("Nyaa〜\n" + xml.response.data.images.image.url.cdata)  
         
     async def cmd_choice(self, message):
         """
         Usage:
             {command_prefix}choice choice1;choice2;choice3
 
-        Makes Ainnie-Bot choose one of the choices
+        Makes bot choose one of the choices
         """
         
         choices = message.content.replace(self.config.command_prefix + 'choice', '').strip()
         if len(choices) == 0:
-            return Response("I don't see any choices to make", delete_after=20)
+            return Response("Kiyu doesn't see any choices to make")
 
         choices = choices.split(';')
-        return Response("I choose **%s**" % (random.choice(choices))  , delete_after=20)    
+        return Response("Kiyu chooses **%s**" % (random.choice(choices)))    
 
     async def cmd_coinflip(self, message):
         """
         Usage:
             {command_prefix}coinflip
 
-        Makes Ainnie-Bot flip a coin
+        Makes bot flip a coin
         """
         
-        return Response("I flipped a **%s**" % (random.choice(['heads', 'tails']))  , delete_after=20)        
+        return Response("Kiyu flipped a **%s**" % (random.choice(['heads', 'tails'])))        
     
     async def cmd_roll(self, message):
         """
         Usage:
             {command_prefix}roll #
 
-        Makes Ainnie-Bot roll a #-sided die (defaults to 6 if no number given)
+        Makes bot roll a #-sided die (defaults to 6 if no number given)
         """
         
         sides = message.content.replace(self.config.command_prefix + 'roll', '').strip()
@@ -565,47 +572,47 @@ class MusicBot(discord.Client):
             
             # User tries to roll less than 1 sided
             if sides < 1:
-                return Response("I don't know what you wanted to roll. I rolled a 6-sided die instead\n" \
-                    "I rolled a **%d**" % (random.randint(1, 6)), delete_after=20)
+                return Response("Kiyu doesn't know what you wanted to roll. Kiyu rolled a 6-sided die instead\n" \
+                    "Kiyu rolled a **%d**" % (random.randint(1, 6)))
             
             # User tries to roll higher than 1000 sides
             if sides > 1000:
-                return Response("Too many sides. I rolled a 1000-sided die instead\n" \
-                    "I rolled a **%d**" % (random.randint(1, 1000)), delete_after=20)
+                return Response("Too many sides. Kiyu rolled a 1000-sided die instead\n" \
+                    "Kiyu rolled a **%d**" % (random.randint(1, 1000)))
             # Normal case (1-1000)
-            return Response("I rolled a **%d**" % (random.randint(1, sides)), delete_after=20)
+            return Response("Kiyu rolled a **%d**" % (random.randint(1, sides)))
         except ValueError:
-            return Response("I don't know what you wanted to roll. I rolled a 6-sided die instead\n" \
-                "I rolled a **%d**" % (random.randint(1, 6)), delete_after=20)
+            return Response("Kiyu don't know what you wanted to roll. Kiyu rolled a 6-sided die instead\n" \
+                "Kiyu rolled a **%d**" % (random.randint(1, 6)))
     
     async def cmd_say(self, message):
         """
         Usage:
             {command_prefix}say (message)
 
-        Makes Ainnie-Bot say something
+        Makes bot say something
         """
         
         say = message.content.replace(self.config.command_prefix + 'say', '').strip()
-        return Response(say, delete_after=20)  
+        return Response(say)  
 
     async def cmd_game(self, message):
         """
         Usage:
             {command_prefix}game (message)
 
-        Makes Ainnie-Bot play a game
-        Ainnie-bot removes her game if there is no message specified
+        Makes bot play a game
+        Bot removes its game if there is no message specified
         """
         game_name = message.content.replace(self.config.command_prefix + 'game', '').strip()
         
         if len(game_name) > 0:
             game = discord.Game(name=game_name)
             await self.change_status(game=game)
-            return Response("I am now playing " + game_name, delete_after=20) 
+            return Response("Kiyu is now playing " + game_name) 
         else:
             await self.change_status(game=None)
-            return Response("I am no longer playing", delete_after=20) 
+            return Response("Kiyu is no longer playing") 
         
     async def cmd_help(self, command=None):
         """
@@ -631,7 +638,7 @@ class MusicBot(discord.Client):
                 return Response("No such command", delete_after=10)
 
         else:
-            helpmsg = "my commands are\n```"
+            helpmsg = "Kiyu's commands are〜\n```"
             commands = []
 
             for att in dir(self):
@@ -656,7 +663,8 @@ class MusicBot(discord.Client):
             float(search_range)  # lazy check
             search_range = min(int(search_range), 1000)
         except:
-            return Response("enter a number.  NUMBER.  That means digits.  `15`.  Etc.", reply=True, delete_after=8)
+            return Response("That's not what Kiyu expected. The format is `%sclean [optional range]`" 
+                % (self.config.command_prefix))
 
         await self.safe_delete_message(message, quiet=True)
 
@@ -835,7 +843,7 @@ class MusicBot(discord.Client):
                     await self.edit_profile(avatar=await res.read())
 
         except Exception as e:
-            raise exceptions.CommandError("Unable to change avatar: %s" % e, expire_in=20)
+            raise exceptions.CommandError("Kiyu couldn't change avatar: %s" % e, expire_in=20)
 
         return Response(":ok_hand:", delete_after=20)
 
@@ -873,7 +881,7 @@ class MusicBot(discord.Client):
             return
 
         if message.author == self.user:
-            self.safe_print("Ignoring command from myself (%s)" % message.content)
+            self.safe_print("Ignoring command from Kiyu (%s)" % message.content)
             return
 
         if self.config.bound_channels and message.channel.id not in self.config.bound_channels and not message.channel.is_private:
