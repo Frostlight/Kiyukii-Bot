@@ -642,6 +642,9 @@ class MusicBot(discord.Client):
         
         term = message.content.replace(self.config.command_prefix + 'dict', '').strip().title()
         
+        if len(term.split()) > 1:
+            return Response("Kiyu can only look up single terms!")
+        
         # Lookup term with Dictionary
         dict_lookup = self.dictionary.meaning(term)
         
