@@ -620,7 +620,7 @@ class MusicBot(discord.Client):
             self.rr_bullet = random.randint(1, 6)
             self.rr_count = 1
             await asyncio.sleep(1)
-            return Response("%s died! The gun was fired %d times\nKiyu reloaded the gun for you. <3" % (message.author.mention, temp_count))
+            return Response("%s died! The gun was fired %d times.\nKiyu reloaded the gun for you. <3" % (message.author.mention, temp_count))
         # Death did not occur
         else:
             await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % (roulette_list[0], roulette_list[1], roulette_list[3]))
