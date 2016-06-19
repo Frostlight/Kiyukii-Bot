@@ -305,7 +305,7 @@ class MusicBot(discord.Client):
                 .format(query,meaning,resp.find('div', {'class':'example'}).text.strip('\n'),resp
                 .find('div', {'class':'contributor'}).text.strip('\n')), delete_after=20)
         except AttributeError:
-            return Response("Either the page doesn't exist, or you typed it in wrong. Please try again.", 
+            return Response("Kiyu couldn't find an entry for that. Are you sure you typed it right?", 
                 delete_after=20)
     
     async def cmd_xkcd(self, message):
@@ -411,26 +411,26 @@ class MusicBot(discord.Client):
         Ask Kiyu a yes or no question
         """
     
-        answers = ["It is certain",
-            "It is decidedly so",
+        answers = ["It is certain.",
+            "It is decidedly so.",
             "Without a doubt!",
             "Yes, definitely!!",
             "You can count on it!",
-            "As Kiyu see it yes",
+            "As Kiyu see it yes.",
             "Most likely",
-            "Outlook good",
-            "Yes",
-            "Signs point to yes",
-            "Reply hazy try again",
-            "Ask again later",
-            "Kiyu doesn't want to tell you now",
-            "Kiyu can't predict now",
-            "Concentrate and ask again",
-            "Don't count on it",
-            "Kiyu's reply is no",
-            "Kiyu's sources say no",
-            "Outlook not so good",
-            "Very doubtful"]
+            "Outlook good.",
+            "Yes.",
+            "Signs point to yes.",
+            "Reply hazy, try again!",
+            "Ask again later.",
+            "Kiyu doesn't want to tell you now/",
+            "Kiyu can't predict now.",
+            "Concentrate and ask again.",
+            "Don't count on it.",
+            "Kiyu's reply is no.",
+            "Kiyu's sources say no./",
+            "Outlook not so good.",
+            "Very doubtful."]
         
         return Response(random.choice(answers)) 
         
@@ -546,7 +546,7 @@ class MusicBot(discord.Client):
         
         choices = message.content.replace(self.config.command_prefix + 'choice', '').strip()
         if len(choices) == 0:
-            return Response("Kiyu doesn't see any choices to make")
+            return Response("Kiyu doesn't see any choices to make.")
 
         choices = choices.split(';')
         return Response("Kiyu chooses **%s**!" % (random.choice(choices)))    
@@ -626,7 +626,7 @@ class MusicBot(discord.Client):
             await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % (roulette_list[0], roulette_list[1], roulette_list[3]))
             self.rr_count += 1
             await asyncio.sleep(1)
-            return Response("Kiyu saw the gun get fired %d/6 times so far." % (self.rr_count - 1))
+            return Response("Kiyu saw the gun get fired %d times so far." % (self.rr_count - 1))
     
     
     async def cmd_say(self, message):
