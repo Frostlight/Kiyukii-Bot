@@ -615,7 +615,8 @@ class MusicBot(discord.Client):
         
         # Splat!
         if self.rr_bullet == self.rr_count:
-            await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % (roulette_list[0], roulette_list[1], roulette_list[2]))
+            await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % 
+                (roulette_list[0], roulette_list[1], roulette_list[2]))
             
             # Save the number of shots fired before the death so the bot can recall it later
             temp_count = self.rr_count
@@ -624,13 +625,16 @@ class MusicBot(discord.Client):
             self.rr_bullet = random.randint(1, 6)
             self.rr_count = 1
             await asyncio.sleep(1)
-            return Response("%s died! The gun was fired %d times.\nKiyu reloaded the gun for you. <3" % (message.author.mention, temp_count))
+            return Response("%s died! The gun was fired %d times.\nKiyu reloaded the gun for you. <3" % 
+                (message.author.mention, temp_count))
         # Death did not occur
         else:
-            await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % (roulette_list[0], roulette_list[1], roulette_list[3]))
+            await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % 
+                (roulette_list[0], roulette_list[1], roulette_list[3]))
             self.rr_count += 1
             await asyncio.sleep(1)
-            return Response("Kiyu saw the gun get fired %d times so far." % (self.rr_count - 1))
+            return Response("Kiyu saw the gun get fired %d time%s so far." % 
+                ((self.rr_count - 1), "s" if (self.rr_count - 1) > 1 else ""))
     
     async def cmd_dict(self, message):
         """
