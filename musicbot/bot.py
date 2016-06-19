@@ -642,9 +642,11 @@ class MusicBot(discord.Client):
         
         term = message.content.replace(self.config.command_prefix + 'dict', '').strip().title()
         
-        # Lookup term with PyDictionary
+        # Lookup term with Dictionary
         dict_lookup = self.dictionary.meaning(term)
-        print(dict_lookup)
+        
+        if dict_lookup == None:
+            return Response("Kiyu couldn't find a definition for that term.")
         
         """ 
         Result looks like this:
