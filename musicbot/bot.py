@@ -13,6 +13,7 @@ import requests
 import untangle
 
 from cleverbot import Cleverbot
+from PyDictionary import PyDictionary
 
 from discord import utils
 from discord.object import Object
@@ -75,6 +76,9 @@ class MusicBot(discord.Client):
         # Initialise Russian Roulette Values
         self.rr_bullet = random.randint(1, 6)
         self.rr_count = 1
+        
+        # Initialise PyDictionary
+        self.dictionary = PyDictionary()
 
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
@@ -628,7 +632,38 @@ class MusicBot(discord.Client):
             await asyncio.sleep(1)
             return Response("Kiyu saw the gun get fired %d times so far." % (self.rr_count - 1))
     
-    
+    async def cmd_dict(self, message):
+        """
+        Usage:
+            {command_prefix}dict (term)
+
+        Looks up a term on the dictionary
+        """
+        
+        term = message.content.replace(self.config.command_prefix + 'dict', '').strip().title()
+        
+        # Lookup term with PyDictionary
+        dict_lookup = self.dictionary.meaning(term)
+        print(dict_lookup)
+        
+        """ 
+        Result looks like this:
+        {'Noun': ['a concave cut into a surface or edge (as in a coastline', 'the
+        formation of small pits in a surface as a consequence of corrosion', 'the
+        space left between the margin and the start of an indented line', 'the 
+        act of cutting into an edge with toothlike notches or angular incisions']}         
+        """
+        
+        result_string = ":mag:**%s**:\n" % (term)
+        for type in dict_lookup:
+            result_string += "\n_%s_\n" % (type)
+            term_number = 1
+            for definition in dict_lookup[type]:
+                result_string += "\t%d. %s\n" % (term_number, definition)
+                term_number += 1
+        
+        return Response(result_string)
+        
     async def cmd_say(self, message):
         """
         Usage:

@@ -3,3 +3,4 @@ cleverbot
 untangle
 requests
 bs4
+git+git://github.com/Frostlight/PyDictionary-Install.git
