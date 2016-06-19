@@ -13,7 +13,7 @@ import requests
 import untangle
 
 from cleverbot import Cleverbot
-from PyDictionary import PyDictionary
+from PyDictionaryMod import PyDictionaryMod
 
 from discord import utils
 from discord.object import Object
@@ -77,8 +77,8 @@ class MusicBot(discord.Client):
         self.rr_bullet = random.randint(1, 6)
         self.rr_count = 1
         
-        # Initialise PyDictionary
-        self.dictionary = PyDictionary()
+        # Initialise PyDictionaryMod
+        self.dictionary = PyDictionaryMod()
 
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
@@ -645,9 +645,6 @@ class MusicBot(discord.Client):
         """
         
         term = message.content.replace(self.config.command_prefix + 'dict', '').strip().title()
-        
-        if len(term.split()) > 1:
-            return Response("Kiyu can only look up single terms!")
         
         # Lookup term with Dictionary
         dict_lookup = self.dictionary.meaning(term)
