@@ -71,6 +71,10 @@ class MusicBot(discord.Client):
         self.config = Config(config_file)
         self.permissions = Permissions(perms_file, grant_all=[self.config.owner_id])
         self.exit_signal = None
+        
+        # Initialise Russian Roulette Values
+        self.rr_bullet = random.randint(1, 6)
+        self.rr_count = 1
 
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
@@ -527,7 +531,7 @@ class MusicBot(discord.Client):
         
         if resp.status_code != 200:
             # This means something went wrong.
-            return Response("Kiyu couldn't get any cat gifs")
+            return Response("Kiyu couldn't get any cat gifs.")
         
         xml = untangle.parse(resp.text)
         return Response("Nyaa〜\n" + xml.response.data.images.image.url.cdata)  
@@ -545,7 +549,7 @@ class MusicBot(discord.Client):
             return Response("Kiyu doesn't see any choices to make")
 
         choices = choices.split(';')
-        return Response("Kiyu chooses **%s**" % (random.choice(choices)))    
+        return Response("Kiyu chooses **%s**!" % (random.choice(choices)))    
 
     async def cmd_coinflip(self, message):
         """
@@ -555,7 +559,7 @@ class MusicBot(discord.Client):
         Makes bot flip a coin
         """
         
-        return Response("Kiyu flipped a **%s**" % (random.choice(['heads', 'tails'])))        
+        return Response("Kiyu flipped a **%s**." % (random.choice(['heads', 'tails'])))        
     
     async def cmd_roll(self, message):
         """
@@ -573,17 +577,57 @@ class MusicBot(discord.Client):
             # User tries to roll less than 1 sided
             if sides < 1:
                 return Response("Kiyu doesn't know what you wanted to roll. Kiyu rolled a 6-sided die instead\n" \
-                    "Kiyu rolled a **%d**" % (random.randint(1, 6)))
+                    "Kiyu rolled a **%d**." % (random.randint(1, 6)))
             
             # User tries to roll higher than 1000 sides
             if sides > 1000:
-                return Response("Too many sides. Kiyu rolled a 1000-sided die instead\n" \
-                    "Kiyu rolled a **%d**" % (random.randint(1, 1000)))
+                return Response("Too many sides. Kiyu rolled a 1000-sided die instead.\n" \
+                    "Kiyu rolled a **%d**." % (random.randint(1, 1000)))
             # Normal case (1-1000)
-            return Response("Kiyu rolled a **%d**" % (random.randint(1, sides)))
+            return Response("Kiyu rolled a **%d**." % (random.randint(1, sides)))
         except ValueError:
-            return Response("Kiyu don't know what you wanted to roll. Kiyu rolled a 6-sided die instead\n" \
-                "Kiyu rolled a **%d**" % (random.randint(1, 6)))
+            return Response("Kiyu don't know what you wanted to roll. Kiyu rolled a 6-sided die instead.\n" \
+                "Kiyu rolled a **%d**." % (random.randint(1, 6)))
+    
+    async def cmd_rr(self, message):
+        """
+        Usage:
+            {command_prefix}rr
+
+        Allows the user to take part in the famous Russian Pasttime
+        """
+        roulette_list = ['You spin the cylinder of the revolver with 1 bullet in it...',
+                         '...you place the muzzle against your head and pull the trigger...',
+                         '...your brain gets splattered all over the wall.',
+                         '...you live to see another day.']
+
+        # Send a blank message and edit it right away to make it show (edited) below the box
+        # for properly aligning
+        roulette_message = await self.safe_send_message(message.channel, " ")
+        await self.safe_edit_message(roulette_message, "```%s\n\n ```" % (roulette_list[0]))
+        await asyncio.sleep(1)
+        await self.safe_edit_message(roulette_message, "```%s\n%s\n ```" % (roulette_list[0], roulette_list[1]))
+        await asyncio.sleep(2)
+        
+        # Splat!
+        if self.rr_bullet == self.rr_count:
+            await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % (roulette_list[0], roulette_list[1], roulette_list[2]))
+            
+            # Save the number of shots fired before the death so the bot can recall it later
+            temp_count = self.rr_count
+            
+            # Reload the gun
+            self.rr_bullet = random.randint(1, 6)
+            self.rr_count = 1
+            await asyncio.sleep(1)
+            return Response("%s died! The gun was fired %d times\nKiyu reloaded the gun for you. <3" % (message.author.mention, temp_count))
+        # Death did not occur
+        else:
+            await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % (roulette_list[0], roulette_list[1], roulette_list[3]))
+            self.rr_count += 1
+            await asyncio.sleep(1)
+            return Response("Kiyu saw the gun get fired %d/6 times so far." % (self.rr_count - 1))
+    
     
     async def cmd_say(self, message):
         """
@@ -867,8 +911,8 @@ class MusicBot(discord.Client):
         # Message sent was an invalid command/not a command
         if not message_content.startswith(self.config.command_prefix):
             # Cleverbot Interaction when bot
-            if message_content.find('<@193778484869332993>') != -1:
-                string_sent = message_content.replace('<@193778484869332993>', '').strip()
+            if message_content.find(self.user.mention) != -1:
+                string_sent = message_content.replace(self.user.mention, '').strip()
                 
                 cb = Cleverbot()
                 string_reply = message.author.mention + ' ' + cb.ask(string_sent)
