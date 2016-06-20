@@ -15,6 +15,7 @@ import json
 
 from cleverbot import Cleverbot
 from PyDictionaryMod import PyDictionaryMod
+from datetime import datetime, timedelta
 
 from discord import utils
 from discord.object import Object
@@ -83,7 +84,7 @@ class MusicBot(discord.Client):
         
         # Initialise pso2 Emergency Quests
         self.pso2_channel = None
-        self.pso2_previousmessage = None
+        self.pso2_previous_message_text = None
         
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
@@ -324,23 +325,37 @@ class MusicBot(discord.Client):
                 return Response("Kiyu is currently watching for EQs in `#%s`." % (self.pso2_channel))
         
     async def pso2_watcher(self, channel):
+        """
+        Periodically checks for PSO2 Emergency Quest updates
+        Used by cmd_pso2()
+        """
+    
         url = 'http://pso2emq.flyergo.eu/api/v2/'
         
         while self.pso2_channel != None:
             response = requests.get(url)
             
+            # Something went wrong with fetch
             if response.status_code != 200:
+                self.pso2_channel = None
                 await self.safe_send_message(channel, "Something went wrong!\n" \
                     "Kiyu couldn't get the EQ notifications, so she will stop watching for EQs in `#%s` now."
                     % (channel.name))
+                break
             
             json_object = json.loads(response.text)
-            eq_text = json_object[0]["text"]
+            eq_text = "```%s```" % (json_object[0]["text"])
             
-            if (self.pso2_previousmessage != eq_text):
-                self.pso2_previousmessage = eq_text
+            if self.pso2_previous_message_text != eq_text:
+                self.pso2_previous_message_text = eq_text
+                
+                # Post the minutes until next hour along with the notification
+                current_minutes = datetime.now().minute
+                minutes_to_next_hour = 60 - current_minutes
+                eq_text += "Next hour in %d minutes." % (minutes_to_next_hour)
                 await self.safe_send_message(channel, eq_text)
                 
+            # Wait five minutes between checks
             await asyncio.sleep(300)
         
     async def cmd_dict(self, message):
