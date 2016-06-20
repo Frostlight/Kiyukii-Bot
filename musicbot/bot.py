@@ -79,7 +79,10 @@ class MusicBot(discord.Client):
         
         # Initialise PyDictionaryMod
         self.dictionary = PyDictionaryMod()
-
+        
+        # Initialise pso2
+        self.pso2_channel = None
+        
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
         ssd_defaults = {'last_np_msg': None, 'auto_paused': False}
@@ -285,6 +288,36 @@ class MusicBot(discord.Client):
             print("  Delete Invoking: " + ['Disabled', 'Enabled'][self.config.delete_invoking])
         print("  Debug Mode: " + ['Disabled', 'Enabled'][self.config.debug_mode])
         print()
+        
+    async def cmd_pso2(self, message):
+        """
+        Usage:
+            {command_prefix}pso2 on|off
+
+        Turns on pso2 EQ notifications for the channel.
+        """
+        
+        query = message.content.replace(self.config.command_prefix + 'pso2', '').strip()
+        
+        if query == "on":
+            if (self.pso2_channel == None):
+                self.pso2_channel = message.channel.name
+                return Response("Kiyu will now watch for EQs and tell you in `#%s`.\n" \
+                    "...but Kiyu doesn't actually know how to watch for EQs so she won't do anything."% (self.pso2_channel))
+            else:
+                return Response("Kiyu is already watching for EQs in `#%s`!\n... just kidding. <3" % (self.pso2_channel))
+        elif query == "off":
+            if (self.pso2_channel == None):
+                return Response("Kiyu isn't even watching for any EQs in the first place!!")
+            else:
+                temp_channel = self.pso2_channel
+                self.pso2_channel = None
+                return Response("Kiyu is no longer watching for EQs in `#%s` anymore.\n... as if Kiyu was doing it in the first place!" % (self.pso2_channel))
+        else:
+            if (self.pso2_channel == None):
+                return Response("Kiyu isn't watching for any EQs right now.")
+            else:
+                return Response("Kiyu is currently watching for EQs in `#%s`.\n... but not really. <3" % (self.pso2_channel))
         
     async def cmd_urban(self, message):
         """
