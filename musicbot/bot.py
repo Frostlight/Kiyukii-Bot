@@ -11,6 +11,7 @@ import traceback
 import random
 import requests
 import untangle
+import json
 
 from cleverbot import Cleverbot
 from PyDictionaryMod import PyDictionaryMod
@@ -80,8 +81,9 @@ class MusicBot(discord.Client):
         # Initialise PyDictionaryMod
         self.dictionary = PyDictionaryMod()
         
-        # Initialise pso2
+        # Initialise pso2 Emergency Quests
         self.pso2_channel = None
+        self.pso2_previousmessage = None
         
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
@@ -302,36 +304,83 @@ class MusicBot(discord.Client):
         if query == "on":
             if (self.pso2_channel == None):
                 self.pso2_channel = message.channel.name
-                return Response("Kiyu will now watch for EQs and tell you in `#%s`.\n" \
-                    "...but Kiyu doesn't actually know how to watch for EQs so she won't do anything."% (self.pso2_channel))
+                await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
+                    % (self.pso2_channel))
+                await self.pso2_watcher(message.channel)
+                return Response()
             else:
-                return Response("Kiyu is already watching for EQs in `#%s`!\n... just kidding. <3" % (self.pso2_channel))
+                return Response("Kiyu is already watching for EQs in `#%s`!" % (self.pso2_channel))
         elif query == "off":
             if (self.pso2_channel == None):
                 return Response("Kiyu isn't even watching for any EQs in the first place!!")
             else:
                 temp_channel = self.pso2_channel
                 self.pso2_channel = None
-                return Response("Kiyu is no longer watching for EQs in `#%s` anymore.\n... as if she was doing it in the first place!" % (temp_channel))
+                return Response("Kiyu is no longer watching for EQs in `#%s` anymore." % (temp_channel))
         else:
             if (self.pso2_channel == None):
                 return Response("Kiyu isn't watching for any EQs right now.")
             else:
-                return Response("Kiyu is currently watching for EQs in `#%s`.\n... but not really. <3" % (self.pso2_channel))
+                return Response("Kiyu is currently watching for EQs in `#%s`." % (self.pso2_channel))
         
-    #TODO: WIP
-    """async def pso2_watcher(self, channel):
-        url = http://pso2emq.flyergo.eu/
-        
-        with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                r = await resp.read()
-        resp = bs(r,'html.parser')
+    async def pso2_watcher(self, channel):
+        url = 'http://pso2emq.flyergo.eu/api/v2/'
         
         while self.pso2_channel != None:
-            try:
-    """
+            response = requests.get(url)
+            
+            if response.status_code != 200:
+                await self.safe_send_message(channel, "Something went wrong!\n" \
+                    "Kiyu couldn't get the EQ notifications, so she will stop watching for EQs in `#%s` now."
+                    % (channel.name))
+            
+            json_object = json.loads(response.text)
+            eq_text = json_object[0]["text"]
+            
+            if (self.pso2_previousmessage != eq_text):
+                self.pso2_previousmessage = eq_text
+                await self.safe_send_message(channel, eq_text)
                 
+            await asyncio.sleep(300)
+        
+    async def cmd_dict(self, message):
+        """
+        Usage:
+            {command_prefix}dict (term)
+
+        Looks up a term on the dictionary
+        """
+        
+        term = message.content.replace(self.config.command_prefix + 'dict', '').strip().title()
+        
+        # No term specified
+        if len(term) == 0:
+            return Response("Kiyu needs something to look up!")
+        
+        # Lookup term with Dictionary
+        dict_lookup = self.dictionary.meaning(term)
+        
+        if dict_lookup == None:
+            return Response("Kiyu couldn't find a definition for that term.")
+        
+        """ 
+        Result looks like this:
+        {'Noun': ['a concave cut into a surface or edge (as in a coastline', 'the
+        formation of small pits in a surface as a consequence of corrosion', 'the
+        space left between the margin and the start of an indented line', 'the 
+        act of cutting into an edge with toothlike notches or angular incisions']}         
+        """
+        
+        result_string = ":mag:**%s**:\n" % (term)
+        for type in dict_lookup:
+            result_string += "\n_%s_\n" % (type)
+            term_number = 1
+            for definition in dict_lookup[type]:
+                result_string += "\t%d. %s\n" % (term_number, definition)
+                term_number += 1
+        
+        return Response(result_string)
+    
     async def cmd_urban(self, message):
         """
         Usage:
@@ -404,6 +453,104 @@ class MusicBot(discord.Client):
         resp = bs(r,'html.parser')
         return Response("Pingu pingu!\n" + resp.text, delete_after=20)
         
+    async def cmd_dot(self):
+        """
+        Usage:
+            {command_prefix}dot
+
+        Makes bot send a dot
+        """
+
+        return Response(".")   
+        
+    async def cmd_heart(self):
+        """
+        Usage:
+            {command_prefix}heart
+
+        Makes Kiyukii-Bot send a heart
+        """
+
+        return Response("<3")  
+        
+    async def cmd_8ball(self):
+        """
+        Usage:
+            {command_prefix}8ball
+
+        Ask Kiyu a yes or no question
+        """
+    
+        # 8ball replies are located in this file
+        with open("musicbot/resources/8ball.txt", "r") as f:
+            data = f.read()
+        data = data.split("\n")
+        
+        return Response(random.choice(data)) 
+                
+    async def cmd_tsun(self):
+        """
+        Usage:
+            {command_prefix}tsun
+
+        Makes bot be tsundere
+        """
+        
+        # Tsundere lines are located in this file
+        with open("musicbot/resources/tsun.txt", "r") as f:
+            data = f.read()
+        data = data.split("\n")
+
+        return Response(random.choice(data)) 
+    
+    async def cmd_kiyu(self):
+        """
+        Usage:
+            {command_prefix}kiyu
+
+        Kiyu pictures!
+        """
+        
+        # Links to Kiyu pictures are located in this file
+        with open("musicbot/resources/kiyu.txt", "r") as f:
+            data = f.read()
+        data = data.split("\n")
+        
+        return Response("Kiyu ♪♪\n" + random.choice(data)) 
+        
+    async def cmd_honk(self):
+        """
+        Usage:
+            {command_prefix}honk
+
+        Sends a Chen honk picture
+        """
+            
+        # Links to Chen pictures are located in this file
+        with open("musicbot/resources/honk.txt", "r") as f:
+            data = f.read()
+        data = data.split("\n")
+
+        return Response("Honk honk!\n" + random.choice(data))
+        
+    async def cmd_cat(self):
+        """
+        Usage:
+            {command_prefix}cat
+
+        Sends a cat picture
+        """
+        
+        # Cat pictures are obtained from an API
+        response = requests.get('http://thecatapi.com/api/images/get?format=xml&results_per_page=1')
+        
+        if response.status_code != 200:
+            # This means something went wrong.
+            return Response("Kiyu couldn't get any cat gifs.")
+        
+        xml = untangle.parse(response.text)
+        return Response("Nyaa〜\n" + xml.response.data.images.image.url.cdata)  
+
     async def cmd_timer(self, message):
         """
         Usage:
@@ -426,169 +573,24 @@ class MusicBot(discord.Client):
                 print(remember)
                 endtimer = self.safe_send_message(
                     message.channel, message.author.mention + ", your timer for " + str(seconds) + 
-                        " seconds has expired! Kiyu was instructed to remind you about `" + remember + "`!",
-                    expire_in=0,
-                    also_delete=None
-                )
+                        " seconds has expired! Kiyu was instructed to remind you about `" + remember + "`!")
                 await self.safe_send_message(
                     message.channel, message.author.mention + ", Kiyu will remind you about `" + 
-                        remember + "` in " + str(seconds) + " seconds!",
-                    expire_in=0,
-                    also_delete=None
-                )
+                        remember + "` in " + str(seconds) + " seconds!")
                 await asyncio.sleep(float(seconds))
                 await endtimer
             except IndexError:
                 # I guess there wasn't a reminder message
                 endtimer = self.safe_send_message(
-                    message.channel, message.author.mention + ", your timer for " + str(seconds) + " seconds has expired!",
-                    expire_in=0,
-                    also_delete=None
-                )
+                    message.channel, message.author.mention + ", your timer for " + str(seconds) + " seconds has expired!")
                 await self.safe_send_message(
-                    message.channel, message.author.mention + ', you have set a timer for ' + str(seconds) + ' seconds!',
-                    expire_in=0,
-                    also_delete=None
-                )
+                    message.channel, message.author.mention + ', you have set a timer for ' + str(seconds) + ' seconds!')
                 await asyncio.sleep(float(seconds))
                 await endtimer
         except ValueError:
             # Seconds given wasn't a number
             return Response("That's not what Kiyu expected. The format is `%stimer [seconds] " \
                 "[optional reminder message]`" % (self.config.command_prefix))
-        
-    async def cmd_8ball(self):
-        """
-        Usage:
-            {command_prefix}8ball
-
-        Ask Kiyu a yes or no question
-        """
-    
-        answers = ["It is certain.",
-            "It is decidedly so.",
-            "Without a doubt!",
-            "Yes, definitely!!",
-            "You can count on it!",
-            "As Kiyu see it yes.",
-            "Most likely",
-            "Outlook good.",
-            "Yes.",
-            "Signs point to yes.",
-            "Reply hazy, try again!",
-            "Ask again later.",
-            "Kiyu doesn't want to tell you now/",
-            "Kiyu can't predict now.",
-            "Concentrate and ask again.",
-            "Don't count on it.",
-            "Kiyu's reply is no.",
-            "Kiyu's sources say no./",
-            "Outlook not so good.",
-            "Very doubtful."]
-        
-        return Response(random.choice(answers)) 
-        
-    async def cmd_dot(self):
-        """
-        Usage:
-            {command_prefix}dot
-
-        Makes bot send a dot
-        """
-
-        return Response(".")   
-        
-    async def cmd_heart(self):
-        """
-        Usage:
-            {command_prefix}heart
-
-        Makes Kiyukii-Bot send a heart
-        """
-
-        return Response("<3")  
-    
-    async def cmd_tsun(self):
-        """
-        Usage:
-            {command_prefix}tsun
-
-        Makes bot be tsundere
-        """
-
-        tsundereLine = [
-            'H-hmph!',
-            'Don\'t misunderstand, it\'s not like Kiyu likes you or anything...',
-            'Are you stupid!?',
-            'Kiyu is just here because she had nothing else to do!',
-            'T-Tch! S-Shut up!',
-            'N-No, it\'s not like Kiyu did it for you! Kiyu did it because she had freetime, that\'s all!',
-            '...T-Thanks...',
-            'Can you be any more clueless!?!',
-            'Hey! It\'s a privilege to even be able to talk to Kiyu! You should be honored!']
-            
-        return Response(random.choice(tsundereLine)) 
-    
-    async def cmd_kiyu(self):
-        """
-        Usage:
-            {command_prefix}kiyu
-
-        Kiyu pictures!
-        """
-
-        kiyu = [
-            'http://i.imgur.com/BKXcEwg.jpg',
-            'http://i.imgur.com/JHqiFfB.png',
-            'http://i.imgur.com/3LjvnPo.png',
-            'http://i.imgur.com/Z92nQ9c.jpg',
-            'http://i.imgur.com/4sZUiXB.jpg',
-            'http://i.imgur.com/zAIGrpT.jpg',
-            'http://i.imgur.com/3BPIzGH.jpg',
-            'http://i.imgur.com/TquSU8v.jpg',
-            'http://i.imgur.com/YdPGfmS.jpg']
-            
-        return Response("Kiyu ♪♪\n" + random.choice(kiyu)) 
-        
-    async def cmd_honk(self):
-        """
-        Usage:
-            {command_prefix}honk
-
-        Sends a Chen honk picture
-        """
-        
-        honk = [
-            'http://i.imgur.com/RCQzkty.jpg',
-            'http://i.imgur.com/6aNrpHm.jpg',
-            'http://i.imgur.com/8mxN6cf.png',
-            'http://i.imgur.com/OaQGQQR.jpg',
-            'http://i.imgur.com/bq6HUX4.gif',
-            'http://i.imgur.com/t6EJLkl.png',
-            'http://i.imgur.com/hYo1tN9.jpg',
-            'http://i.imgur.com/ReHutTA.jpg',
-            'http://i.imgur.com/jW1oo2Y.png',
-            'http://i.imgur.com/rWJYJWI.jpg',
-            'http://i.imgur.com/kcAhZYE.png',
-            'http://i.imgur.com/Yi5WEYO.jpg']
-
-        return Response("Honk honk!\n" + random.choice(honk))
-        
-    async def cmd_cat(self):
-        """
-        Usage:
-            {command_prefix}cat
-
-        Sends a cat picture
-        """
-        resp = requests.get('http://thecatapi.com/api/images/get?format=xml&results_per_page=1')
-        
-        if resp.status_code != 200:
-            # This means something went wrong.
-            return Response("Kiyu couldn't get any cat gifs.")
-        
-        xml = untangle.parse(resp.text)
-        return Response("Nyaa〜\n" + xml.response.data.images.image.url.cdata)  
         
     async def cmd_choice(self, message):
         """
@@ -685,44 +687,6 @@ class MusicBot(discord.Client):
             await asyncio.sleep(1)
             return Response("Kiyu saw the gun get fired %d time%s so far." % 
                 ((self.rr_count - 1), "s" if (self.rr_count - 1) > 1 else ""))
-    
-    async def cmd_dict(self, message):
-        """
-        Usage:
-            {command_prefix}dict (term)
-
-        Looks up a term on the dictionary
-        """
-        
-        term = message.content.replace(self.config.command_prefix + 'dict', '').strip().title()
-        
-        # No term specified
-        if len(term) == 0:
-            return Response("Kiyu needs something to look up!")
-        
-        # Lookup term with Dictionary
-        dict_lookup = self.dictionary.meaning(term)
-        
-        if dict_lookup == None:
-            return Response("Kiyu couldn't find a definition for that term.")
-        
-        """ 
-        Result looks like this:
-        {'Noun': ['a concave cut into a surface or edge (as in a coastline', 'the
-        formation of small pits in a surface as a consequence of corrosion', 'the
-        space left between the margin and the start of an indented line', 'the 
-        act of cutting into an edge with toothlike notches or angular incisions']}         
-        """
-        
-        result_string = ":mag:**%s**:\n" % (term)
-        for type in dict_lookup:
-            result_string += "\n_%s_\n" % (type)
-            term_number = 1
-            for definition in dict_lookup[type]:
-                result_string += "\t%d. %s\n" % (term_number, definition)
-                term_number += 1
-        
-        return Response(result_string)
         
     async def cmd_say(self, message):
         """
@@ -738,24 +702,6 @@ class MusicBot(discord.Client):
         say = message.content.replace(self.config.command_prefix + 'say', '').strip()
         return Response(say)  
 
-    async def cmd_game(self, message):
-        """
-        Usage:
-            {command_prefix}game (message)
-
-        Makes bot play a game
-        Bot removes its game if there is no message specified
-        """
-        game_name = message.content.replace(self.config.command_prefix + 'game', '').strip()
-        
-        if len(game_name) > 0:
-            game = discord.Game(name=game_name)
-            await self.change_status(game=game)
-            return Response("Kiyu is now playing %s." % (game_name)) 
-        else:
-            await self.change_status(game=None)
-            return Response("Kiyu is no longer playing.") 
-        
     async def cmd_help(self, command=None):
         """
         Usage:
@@ -989,6 +935,24 @@ class MusicBot(discord.Client):
 
         return Response(":ok_hand:", delete_after=20)
 
+    async def cmd_game(self, message):
+        """
+        Usage:
+            {command_prefix}setgame (message)
+
+        Makes bot play a game
+        Bot removes its game if there is no message specified
+        """
+        game_name = message.content.replace(self.config.command_prefix + 'game', '').strip()
+        
+        if len(game_name) > 0:
+            game = discord.Game(name=game_name)
+            await self.change_status(game=game)
+            return Response("Kiyu is now playing %s." % (game_name)) 
+        else:
+            await self.change_status(game=None)
+            return Response("Kiyu is no longer playing.")     
+        
     async def cmd_restart(self, channel):
         await self.safe_send_message(channel, ":wave:")
         raise exceptions.RestartSignal
@@ -1016,9 +980,7 @@ class MusicBot(discord.Client):
                 string_reply = message.author.mention + ' ' + cb.ask(string_sent)
                 
                 sentmsg = await self.safe_send_message(
-                        message.channel, string_reply,
-                        expire_in=0,
-                        also_delete=None
+                        message.channel, string_reply
                     )
             return
 
