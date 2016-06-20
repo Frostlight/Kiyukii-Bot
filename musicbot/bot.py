@@ -312,7 +312,7 @@ class MusicBot(discord.Client):
             else:
                 temp_channel = self.pso2_channel
                 self.pso2_channel = None
-                return Response("Kiyu is no longer watching for EQs in `#%s` anymore.\n... as if she was doing it in the first place!" % (self.pso2_channel))
+                return Response("Kiyu is no longer watching for EQs in `#%s` anymore.\n... as if she was doing it in the first place!" % (temp_channel))
         else:
             if (self.pso2_channel == None):
                 return Response("Kiyu isn't watching for any EQs right now.")
