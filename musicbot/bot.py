@@ -344,7 +344,7 @@ class MusicBot(discord.Client):
                 break
             
             json_object = json.loads(response.text)
-            eq_text = "```%s```" % (json_object[0]["text"])
+            eq_text = "```%s" % (json_object[0]["text"])
             
             if self.pso2_previous_message_text != eq_text:
                 self.pso2_previous_message_text = eq_text
@@ -352,11 +352,17 @@ class MusicBot(discord.Client):
                 # Post the minutes until next hour along with the notification
                 current_minutes = datetime.now().minute
                 minutes_to_next_hour = 60 - current_minutes
-                eq_text += "Next hour in %d minutes." % (minutes_to_next_hour)
+                
+                # If all ships are in event preparation, no need to append time to event
+                if eq_text.find("[2 hours later]") != -1:
+                    eq_text += "```"
+                else:
+                    eq_text += "\n\nEmergency Quest(s) begin in %d minutes.```" % (minutes_to_next_hour)
+                    
                 await self.safe_send_message(channel, eq_text)
                 
-            # Wait five minutes between checks
-            await asyncio.sleep(300)
+            # Wait 220 seconds between checks
+            await asyncio.sleep(220)
         
     async def cmd_dict(self, message):
         """
