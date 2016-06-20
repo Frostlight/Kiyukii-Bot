@@ -319,6 +319,19 @@ class MusicBot(discord.Client):
             else:
                 return Response("Kiyu is currently watching for EQs in `#%s`.\n... but not really. <3" % (self.pso2_channel))
         
+    #TODO: WIP
+    """async def pso2_watcher(self, channel):
+        url = http://pso2emq.flyergo.eu/
+        
+        with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                r = await resp.read()
+        resp = bs(r,'html.parser')
+        
+        while self.pso2_channel != None:
+            try:
+    """
+                
     async def cmd_urban(self, message):
         """
         Usage:
@@ -327,6 +340,10 @@ class MusicBot(discord.Client):
         Finds a phrase in urban dictionary
         """
         query = message.content.replace(self.config.command_prefix + 'urban', '').strip()
+        
+        # No term specified
+        if len(query) == 0:
+            return Response("Kiyu needs something to look up!")
         
         url = "http://www.urbandictionary.com/define.php?term={}".format(query)
         with aiohttp.ClientSession() as session:
@@ -678,6 +695,10 @@ class MusicBot(discord.Client):
         """
         
         term = message.content.replace(self.config.command_prefix + 'dict', '').strip().title()
+        
+        # No term specified
+        if len(term) == 0:
+            return Response("Kiyu needs something to look up!")
         
         # Lookup term with Dictionary
         dict_lookup = self.dictionary.meaning(term)
