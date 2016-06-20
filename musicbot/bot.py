@@ -653,7 +653,7 @@ class MusicBot(discord.Client):
             
             # User tries to roll less than 1 sided
             if sides < 1:
-                return Response("Kiyu doesn't know what you wanted to roll. Kiyu rolled a 6-sided die instead\n" \
+                return Response("Kiyu doesn't know what you wanted to roll, so she rolled a 6-sided die instead.\n" \
                     "Kiyu rolled a **%d**." % (random.randint(1, 6)))
             
             # User tries to roll higher than 1000 sides
@@ -663,7 +663,7 @@ class MusicBot(discord.Client):
             # Normal case (1-1000)
             return Response("Kiyu rolled a **%d**." % (random.randint(1, sides)))
         except ValueError:
-            return Response("Kiyu don't know what you wanted to roll. Kiyu rolled a 6-sided die instead.\n" \
+            return Response("Kiyu doesn't know what you wanted to roll, so she rolled a 6-sided die instead.\n" \
                 "Kiyu rolled a **%d**." % (random.randint(1, 6)))
     
     async def cmd_rr(self, message):
