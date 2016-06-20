@@ -312,7 +312,7 @@ class MusicBot(discord.Client):
             else:
                 temp_channel = self.pso2_channel
                 self.pso2_channel = None
-                return Response("Kiyu is no longer watching for EQs in `#%s` anymore.\n... as if Kiyu was doing it in the first place!" % (self.pso2_channel))
+                return Response("Kiyu is no longer watching for EQs in `#%s` anymore.\n... as if she was doing it in the first place!" % (self.pso2_channel))
         else:
             if (self.pso2_channel == None):
                 return Response("Kiyu isn't watching for any EQs right now.")
@@ -503,9 +503,9 @@ class MusicBot(discord.Client):
             'H-hmph!',
             'Don\'t misunderstand, it\'s not like Kiyu likes you or anything...',
             'Are you stupid!?',
-            'Kiyu is just here because Kiyu had nothing else to do!',
+            'Kiyu is just here because she had nothing else to do!',
             'T-Tch! S-Shut up!',
-            'N-No, it\'s not like Kiyu did it for you! Kiyu did it because Kiyu had freetime, that\'s all!',
+            'N-No, it\'s not like Kiyu did it for you! Kiyu did it because she had freetime, that\'s all!',
             '...T-Thanks...',
             'Can you be any more clueless!?!',
             'Hey! It\'s a privilege to even be able to talk to Kiyu! You should be honored!']
