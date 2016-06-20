@@ -678,6 +678,9 @@ class MusicBot(discord.Client):
         Makes bot say something
         """
         
+        # Delete the invoking message
+        await self.safe_delete_message(message)
+        
         say = message.content.replace(self.config.command_prefix + 'say', '').strip()
         return Response(say)  
 
