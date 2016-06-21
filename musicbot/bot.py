@@ -1023,7 +1023,7 @@ class MusicBot(discord.Client):
 
         if message.channel.is_private:
             if not (message.author.id == self.config.owner_id and command == 'joinserver'):
-                await self.send_message(message.channel, 'You cannot use this bot in private messages.')
+                await self.send_message(message.channel, "Kiyu doesn't reply to private messages.")
                 return
 
         self.safe_print("[Command] {0.id}/{0.name} ({1})".format(message.author, message_content))
