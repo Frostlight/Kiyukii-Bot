@@ -353,11 +353,16 @@ class MusicBot(discord.Client):
                 current_minutes = datetime.now().minute
                 minutes_to_next_hour = 60 - current_minutes
                 
-                # If all ships are in event preparation, no need to append time to event
+                # If all ships are in event preparation increase the time to match when the event begins.
                 if eq_text.find("[2 hours later]") != -1:
+                    eq_text += "\n\nEmergency quest begin in %d minutes.```" % (minutes_to_next_hour + 120)
+                elif eq_text.find("[1 hour later]") != -1:
+                    eq_text += "\n\nEmergency quest begin in %d minutes.```" % (minutes_to_next_hour + 60)
+                # If all ships have a scheduled emergency quest active, no need for an ETA
+                elif eq_text.find("[In Progress]") != -1:
                     eq_text += "```"
                 else:
-                    eq_text += "\n\nEmergency Quest(s) begin in %d minutes.```" % (minutes_to_next_hour)
+                    eq_text += "\n\nEmergency quest(s) begin in %d minutes.```" % (minutes_to_next_hour)
                     
                 await self.safe_send_message(channel, eq_text)
                 
