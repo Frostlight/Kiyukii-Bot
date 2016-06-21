@@ -75,16 +75,8 @@ class MusicBot(discord.Client):
         self.permissions = Permissions(perms_file, grant_all=[self.config.owner_id])
         self.exit_signal = None
         
-        # Initialise Russian Roulette Values
-        self.rr_bullet = random.randint(1, 6)
-        self.rr_count = 1
-        
         # Initialise PyDictionaryMod
         self.dictionary = PyDictionaryMod()
-        
-        # Initialise pso2 Emergency Quests
-        self.pso2_channel = None
-        self.pso2_previous_message_text = None
         
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
@@ -300,29 +292,37 @@ class MusicBot(discord.Client):
         Turns on pso2 EQ notifications for the channel.
         """
         
+        # This function uses server-specific data
+        server_dict = self.server_specific_data[message.channel.server]
+        
+        # Initialise pso2 notification values if not done yet
+        if 'pso2_channel' not in server_dict:
+            server_dict['pso2_channel'] = None
+            server_dict['pso2_previous_message_text'] = None
+        
         query = message.content.replace(self.config.command_prefix + 'pso2', '').strip()
         
         if query == "on":
-            if (self.pso2_channel == None):
-                self.pso2_channel = message.channel.name
+            if (server_dict['pso2_channel'] == None):
+                server_dict['pso2_channel'] = message.channel.name
                 await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
-                    % (self.pso2_channel))
+                    % (server_dict['pso2_channel']))
                 await self.pso2_watcher(message.channel)
                 return Response()
             else:
-                return Response("Kiyu is already watching for EQs in `#%s`!" % (self.pso2_channel))
+                return Response("Kiyu is already watching for EQs in `#%s`!" % (server_dict['pso2_channel']))
         elif query == "off":
-            if (self.pso2_channel == None):
+            if (server_dict['pso2_channel'] == None):
                 return Response("Kiyu isn't even watching for any EQs in the first place!!")
             else:
-                temp_channel = self.pso2_channel
-                self.pso2_channel = None
+                temp_channel = server_dict['pso2_channel']
+                server_dict['pso2_channel'] = None
                 return Response("Kiyu is no longer watching for EQs in `#%s` anymore." % (temp_channel))
         else:
-            if (self.pso2_channel == None):
+            if (server_dict['pso2_channel'] == None):
                 return Response("Kiyu isn't watching for any EQs right now.")
             else:
-                return Response("Kiyu is currently watching for EQs in `#%s`." % (self.pso2_channel))
+                return Response("Kiyu is currently watching for EQs in `#%s`." % (server_dict['pso2_channel']))
         
     async def pso2_watcher(self, channel):
         """
@@ -330,14 +330,17 @@ class MusicBot(discord.Client):
         Used by cmd_pso2()
         """
     
+        # This function uses server-specific data
+        server_dict = self.server_specific_data[channel.server]
+    
         url = 'http://pso2emq.flyergo.eu/api/v2/'
         
-        while self.pso2_channel != None:
+        while server_dict['pso2_channel'] != None:
             response = requests.get(url)
             
             # Something went wrong with fetch
             if response.status_code != 200:
-                self.pso2_channel = None
+                server_dict['pso2_channel'] = None
                 await self.safe_send_message(channel, "Something went wrong!\n" \
                     "Kiyu couldn't get the EQ notifications, so she will stop watching for EQs in `#%s` now."
                     % (channel.name))
@@ -346,8 +349,8 @@ class MusicBot(discord.Client):
             json_object = json.loads(response.text)
             eq_text = "```%s" % (json_object[0]["text"])
             
-            if self.pso2_previous_message_text != eq_text:
-                self.pso2_previous_message_text = eq_text
+            if server_dict['pso2_previous_message_text'] != eq_text:
+                server_dict['pso2_previous_message_text'] = eq_text
                 
                 # Post the minutes until next hour along with the notification
                 current_minutes = datetime.now().minute
@@ -680,6 +683,15 @@ class MusicBot(discord.Client):
 
         Allows the user to take part in the famous Russian Pasttime
         """
+        
+        # This function uses server-specific data
+        server_dict = self.server_specific_data[message.channel.server]
+        
+        # Initialise Russian Roulette Values if not done yet
+        if 'rr_bullet' not in server_dict:
+            server_dict['rr_bullet'] = random.randint(1, 6)
+            server_dict['rr_count'] = 1
+        
         roulette_list = ['You spin the cylinder of the revolver with 1 bullet in it...',
                          '...you place the muzzle against your head and pull the trigger...',
                          '...your brain gets splattered all over the wall.',
@@ -694,16 +706,16 @@ class MusicBot(discord.Client):
         await asyncio.sleep(2)
         
         # Splat!
-        if self.rr_bullet == self.rr_count:
+        if server_dict['rr_bullet'] == server_dict['rr_count']:
             await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % 
                 (roulette_list[0], roulette_list[1], roulette_list[2]))
             
             # Save the number of shots fired before the death so the bot can recall it later
-            temp_count = self.rr_count
+            temp_count = server_dict['rr_count']
             
             # Reload the gun
-            self.rr_bullet = random.randint(1, 6)
-            self.rr_count = 1
+            server_dict['rr_bullet'] = random.randint(1, 6)
+            server_dict['rr_count'] = 1
             await asyncio.sleep(1)
             return Response("%s died! The gun was fired %d times.\nKiyu reloaded the gun for you. <3" % 
                 (message.author.mention, temp_count))
@@ -711,10 +723,10 @@ class MusicBot(discord.Client):
         else:
             await self.safe_edit_message(roulette_message, "```%s\n%s\n%s```" % 
                 (roulette_list[0], roulette_list[1], roulette_list[3]))
-            self.rr_count += 1
+            server_dict['rr_count'] += 1
             await asyncio.sleep(1)
             return Response("Kiyu saw the gun get fired %d time%s so far." % 
-                ((self.rr_count - 1), "s" if (self.rr_count - 1) > 1 else ""))
+                ((server_dict['rr_count'] - 1), 's' if (server_dict['rr_count'] - 1) > 1 else ''))
         
     async def cmd_say(self, message):
         """
