@@ -358,6 +358,8 @@ class MusicBot(discord.Client):
                     eq_text += "\n\nEmergency quest begins in %d minutes.```" % (minutes_to_next_hour + 120)
                 elif eq_text.find("[1 hour later]") != -1:
                     eq_text += "\n\nEmergency quest begins in %d minutes.```" % (minutes_to_next_hour + 60)
+                elif eq_text.find("[In Preparation]") != -1:
+                    eq_text += "\n\nEmergency quest begins in %d minutes.```" % (minutes_to_next_hour)
                 # If all ships have a scheduled emergency quest active, no need for an ETA
                 elif eq_text.find("[In Progress]") != -1:
                     eq_text += "```"
