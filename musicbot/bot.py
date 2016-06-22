@@ -357,7 +357,7 @@ class MusicBot(discord.Client):
                 minutes_to_next_hour = 60 - current_minutes
                 
                 # If all ships are in event preparation increase the time to match when the event begins.
-                if eq_text.find("[In Progress]") != -1:
+                if eq_text.find("[In Progress]") != -1 or eq_text.find("no report") != -1:
                     eq_text += "```"
                 elif eq_text.find("[In Preparation]") != -1:
                     eq_text += "\n\nEmergency quest begins in %d minutes.```" % (minutes_to_next_hour)
