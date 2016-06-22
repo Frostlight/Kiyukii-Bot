@@ -352,24 +352,30 @@ class MusicBot(discord.Client):
             if server_dict['pso2_previous_message_text'] != eq_text:
                 server_dict['pso2_previous_message_text'] = eq_text
                 
-                # Post the minutes until next hour along with the notification
-                current_minutes = datetime.now().minute
-                minutes_to_next_hour = 60 - current_minutes
-                
-                # If all ships are in event preparation increase the time to match when the event begins.
+                # If all ships have a scheduled emergency quest active, or if there are zero reports, no need for an ETA
                 if eq_text.find("[In Progress]") != -1 or eq_text.find("no report") != -1:
                     eq_text += "```"
-                elif eq_text.find("[In Preparation]") != -1:
-                    eq_text += "\n\nEmergency quest begins in %d minutes.```" % (minutes_to_next_hour)
-                elif eq_text.find("[1 hour later]") != -1:
-                    eq_text += "\n\nEmergency quest begins in %d minutes.```" % (minutes_to_next_hour + 60)
-                elif eq_text.find("[2 hours later]") != -1:
-                    eq_text += "\n\nEmergency quest begins in %d minutes.```" % (minutes_to_next_hour + 120)
-                # If all ships have a scheduled emergency quest active, no need for an ETA
-                else:
-                    eq_text += "\n\nEmergency quest(s) begin in %d minutes.```" % (minutes_to_next_hour)
+                else: 
+                    # Post the minutes until next hour along with the notification
+                    current_minutes = datetime.now().minute
+                
+                    # Initial value is minutes to next hour
+                    minutes_to_event = 60 - current_minutes
                     
-                await self.safe_send_message(channel, eq_text)
+                    if eq_text.find("[In Preparation]") != -1:
+                        eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour)
+                    elif eq_text.find("[1 hour later]") != -1:
+                        eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour + 60)
+                    elif eq_text.find("[2 hours later]") != -1:
+                        eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour + 120)
+                    elif eq_text.find("no emergency quest") != -1:
+                        eq_text += "```"
+                    # Default case, post random emergency quests
+                    else:
+                        eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour)
+                        
+                    # Send the notification
+                    await self.safe_send_message(channel, eq_text)
                 
             # Wait 220 seconds between checks
             await asyncio.sleep(220)
