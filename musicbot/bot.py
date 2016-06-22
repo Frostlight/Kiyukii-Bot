@@ -360,7 +360,7 @@ class MusicBot(discord.Client):
                     current_minutes = datetime.now().minute
                 
                     # Initial value is minutes to next hour
-                    minutes_to_event = 60 - current_minutes
+                    minutes_to_next_hour = 60 - current_minutes
                     
                     if eq_text.find("[In Preparation]") != -1:
                         eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour)
