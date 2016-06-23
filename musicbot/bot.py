@@ -12,6 +12,7 @@ import random
 import requests
 import untangle
 import json
+import wikipedia
 
 from cleverbot import Cleverbot
 from PyDictionaryMod import PyDictionaryMod
@@ -421,9 +422,9 @@ class MusicBot(discord.Client):
     async def cmd_gif(self, message):
         """
         Usage:
-            {command_prefix}gif [search]
+            {command_prefix}gif [optional query]
 
-        Sends a gif with a certain search query
+        Sends a random gif, or a gif with a certain search query
         """
         
         term = message.content.replace(self.config.command_prefix + 'gif', '').strip()
@@ -460,7 +461,7 @@ class MusicBot(discord.Client):
         dict_lookup = self.dictionary.meaning(term)
         
         if dict_lookup == None:
-            return Response("Kiyu couldn't find a definition for that term.")
+            return Response("Kiyu couldn't find a definition for `%s`. Are you sure you typed it right?" % (term))
         
         """ 
         Result looks like this:
@@ -507,8 +508,26 @@ class MusicBot(discord.Client):
                 .format(query,meaning,resp.find('div', {'class':'example'}).text.strip('\n'),resp
                 .find('div', {'class':'contributor'}).text.strip('\n')), delete_after=20)
         except AttributeError:
-            return Response("Kiyu couldn't find an entry for that. Are you sure you typed it right?", 
-                delete_after=20)
+            return Response("Kiyu couldn't find an entry for `%s`. Are you sure you typed it right?" % (query))
+                
+    async def cmd_wiki(self, message):
+        """
+        Usage:
+            {command_prefix}wiki (phrase)
+
+        Looks up term in wikipedia
+        """
+        query = message.content.replace(self.config.command_prefix + 'wiki', '').strip().title()
+        try:
+            wiki_page = wikipedia.page(query)
+            result_string = ":mag:**%s**:\n%s" % \
+                (wiki_page.title, wikipedia.summary(query, sentences=5).replace('\n', '\n\n'))
+        except wikipedia.exceptions.PageError:
+            return Response("Kiyu couldn't find a wiki page for `%s`." % query)
+        except wikipedia.exceptions.DisambiguationError as e:
+            return Response("Kiyu found too many entries for `%s`. Please be more specific!\n\n%s" % (query, e))
+        
+        return Response(result_string)
     
     async def cmd_xkcd(self, message):
         """
