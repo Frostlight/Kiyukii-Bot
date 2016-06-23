@@ -525,7 +525,8 @@ class MusicBot(discord.Client):
         except wikipedia.exceptions.PageError:
             return Response("Kiyu couldn't find a wiki page for `%s`." % query)
         except wikipedia.exceptions.DisambiguationError as e:
-            return Response("Kiyu found too many entries for `%s`. Please be more specific!\n\n%s" % (query, e))
+            return Response("Kiyu found too many entries for `%s`. Please be more specific!\n```%s```" \
+                % (query, str(e).replace('\n', '', 1).replace('\n', '; ')))
         
         return Response(result_string)
     
