@@ -419,30 +419,6 @@ class MusicBot(discord.Client):
         
         return Response("_Squeeks_\n" + json_object["data"]["image_original_url"])  
         
-    async def cmd_gif(self, message):
-        """
-        Usage:
-            {command_prefix}gif [optional query]
-
-        Sends a random gif, or a gif with a certain search query
-        """
-        
-        term = message.content.replace(self.config.command_prefix + 'gif', '').strip()
-        
-        # Bunny gifs are obtained from a giphy API
-        response = requests.get('http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=%s' % term)
-        
-        if response.status_code != 200:
-            # This means something went wrong.
-            return Response("Kiyu couldn't get any gifs of `%s`." % term)
-            
-        json_object = json.loads(response.text)
-        
-        if not "image_original_url" in json_object["data"]:
-            return Response("Kiyu couldn't find any gifs of `%s`." % term)
-        
-        return Response(json_object["data"]["image_original_url"])  
-        
     async def cmd_dict(self, message):
         """
         Usage:
@@ -518,6 +494,10 @@ class MusicBot(discord.Client):
         Looks up term in wikipedia
         """
         query = message.content.replace(self.config.command_prefix + 'wiki', '').strip().title()
+        
+        if len(query) == 0:
+            return Response("Kiyu needs something to search for!")
+                
         try:
             wiki_page = wikipedia.page(query)
             result_string = ":mag:**%s**:\n%s" % \
@@ -525,8 +505,15 @@ class MusicBot(discord.Client):
         except wikipedia.exceptions.PageError:
             return Response("Kiyu couldn't find a wiki page for `%s`." % query)
         except wikipedia.exceptions.DisambiguationError as e:
+            # Seperate disambiguation entries by semicolon, instead of \n
+            error_string = str(e).replace('\n', '', 1).replace('\n', '; ')
+            
+            # Chop off end of string if the length is too long
+            if len(error_string) > 1900:
+                error_string = error_string[:1900]
+                error_string = error_string[:error_string.rfind(';')]
             return Response("Kiyu found too many entries for `%s`. Please be more specific!\n```%s```" \
-                % (query, str(e).replace('\n', '', 1).replace('\n', '; ')))
+                % (query, error_string))
         
         return Response(result_string)
     
