@@ -379,6 +379,68 @@ class MusicBot(discord.Client):
                 
             # Wait 220 seconds between checks
             await asyncio.sleep(220)
+            
+    async def cmd_pusheen(self):
+        """
+        Usage:
+            {command_prefix}pusheen
+
+        Sends a pusheen gif
+        """
+        
+        # Pusheen gifs are obtained from a giphy API
+        response = requests.get('http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=pusheen')
+        
+        if response.status_code != 200:
+            # This means something went wrong.
+            return Response("Kiyu couldn't get any Pusheen gifs.")
+            
+        json_object = json.loads(response.text)
+        
+        return Response("Pusheeeeeen ♫\n" + json_object["data"]["image_original_url"])  
+        
+    async def cmd_bunny(self):
+        """
+        Usage:
+            {command_prefix}bunny
+
+        Sends a bunny gif
+        """
+        
+        # Bunny gifs are obtained from a giphy API
+        response = requests.get('http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=bunny')
+        
+        if response.status_code != 200:
+            # This means something went wrong.
+            return Response("Kiyu couldn't get any bunny gifs.")
+            
+        json_object = json.loads(response.text)
+        
+        return Response("_Squeeks_\n" + json_object["data"]["image_original_url"])  
+        
+    async def cmd_gif(self, message):
+        """
+        Usage:
+            {command_prefix}gif [search]
+
+        Sends a gif with a certain search query
+        """
+        
+        term = message.content.replace(self.config.command_prefix + 'gif', '').strip()
+        
+        # Bunny gifs are obtained from a giphy API
+        response = requests.get('http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=%s' % term)
+        
+        if response.status_code != 200:
+            # This means something went wrong.
+            return Response("Kiyu couldn't get any gifs of `%s`." % term)
+            
+        json_object = json.loads(response.text)
+        
+        if not "image_original_url" in json_object["data"]:
+            return Response("Kiyu couldn't find any gifs of `%s`." % term)
+        
+        return Response(json_object["data"]["image_original_url"])  
         
     async def cmd_dict(self, message):
         """
@@ -583,7 +645,7 @@ class MusicBot(discord.Client):
         
         if response.status_code != 200:
             # This means something went wrong.
-            return Response("Kiyu couldn't get any cat gifs.")
+            return Response("Kiyu couldn't get any cat picture.")
         
         xml = untangle.parse(response.text)
         return Response("Nyaa〜\n" + xml.response.data.images.image.url.cdata)  
