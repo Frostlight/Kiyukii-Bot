@@ -13,6 +13,8 @@ import requests
 import untangle
 import json
 import wikipedia
+import pytz
+import difflib
 
 from cleverbot import Cleverbot
 from PyDictionaryMod import PyDictionaryMod
@@ -516,6 +518,58 @@ class MusicBot(discord.Client):
                 % (query, error_string))
         
         return Response(result_string)
+        
+    async def cmd_time(self, message):
+        """
+        Usage:
+            {command_prefix}time [timezone]
+
+        Tells the current time in a timezone
+        """
+        query = message.content.replace(self.config.command_prefix + 'time', '').strip()
+        
+        # Default to Japan
+        if len(query) == 0:
+            query = "Japan"
+        
+        # Check for input (title) first, then check all caps
+        closest_match = difflib.get_close_matches(query.title(), pytz.all_timezones)
+        if len(closest_match) == 0:
+            closest_match = difflib.get_close_matches(query.upper(), pytz.all_timezones)
+            # Remove "Etc/" from results and run again
+            for i in range(len(closest_match)):
+                closest_match[i] = closest_match[i].replace('Etc/', '')
+            closest_match = difflib.get_close_matches(query.upper(), closest_match)
+        
+        print(closest_match)
+        
+        # If no timezones were found
+        if len(closest_match) == 0:
+            return Response("Kiyu doesn't know any timezones that look like `%s`." % (query))
+            
+        timezone = closest_match[0]
+        
+        try:
+            current_time_utc = pytz.utc.localize(datetime.utcnow())
+            timezone_time = current_time_utc.astimezone(pytz.timezone(timezone))
+            
+            """
+            Format is:
+            10:00 AM
+            Monday, January 5, 2016
+            Time in GMT
+            """
+            
+            # Split the time string so we can strip zeroes off the hour and day
+            time_string = "```" + timezone_time.strftime('%I:%M %p').lstrip('0') \
+                                + timezone_time.strftime('\n%A, %B ') \
+                                + timezone_time.strftime('%d, %Y').lstrip('0') \
+                                + "\nTime in %s```" % (timezone)
+            return Response(time_string)
+        except pytz.UnknownTimeZoneError:
+            return Response("Kiyu doesn't know any timezones that look like `%s`." % (query))
+        
+        
     
     async def cmd_xkcd(self, message):
         """

@@ -6,3 +6,4 @@ bs4
 cffi
 git+git://github.com/Frostlight/PyDictionaryMod.git
 wikipedia
+pytz
