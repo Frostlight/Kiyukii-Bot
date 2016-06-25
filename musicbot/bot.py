@@ -541,8 +541,6 @@ class MusicBot(discord.Client):
                 closest_match[i] = closest_match[i].replace('Etc/', '')
             closest_match = difflib.get_close_matches(query.upper(), closest_match)
         
-        print(closest_match)
-        
         # If no timezones were found
         if len(closest_match) == 0:
             return Response("Kiyu doesn't know any timezones that look like `%s`." % (query))
