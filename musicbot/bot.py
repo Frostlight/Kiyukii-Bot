@@ -352,6 +352,8 @@ class MusicBot(discord.Client):
             json_object = json.loads(response.text)
             eq_text = "```%s" % (json_object[0]["text"])
             
+            print(eq_text)
+            
             if server_dict['pso2_previous_message_text'] != eq_text:
                 server_dict['pso2_previous_message_text'] = eq_text
                 
@@ -377,9 +379,8 @@ class MusicBot(discord.Client):
                     else:
                         eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour)
                         
-                    # Send the notification
-                    await self.safe_send_message(channel, eq_text)
-                
+                # Send the notification
+                await self.safe_send_message(channel, eq_text)    
             # Wait 220 seconds between checks
             await asyncio.sleep(220)
             
