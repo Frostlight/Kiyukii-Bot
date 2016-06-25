@@ -302,27 +302,38 @@ class MusicBot(discord.Client):
         if 'pso2_channel' not in server_dict:
             server_dict['pso2_channel'] = None
             server_dict['pso2_previous_message_text'] = None
+            server_dict['pso2_stopflag'] = None
         
         query = message.content.replace(self.config.command_prefix + 'pso2', '').strip()
         
         if query == "on":
-            if (server_dict['pso2_channel'] == None):
+            # Start the watcher
+            if server_dict['pso2_channel'] == None:
                 server_dict['pso2_channel'] = message.channel.name
+                server_dict['pso2_stopflag'] = False
                 await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
                     % (server_dict['pso2_channel']))
                 await self.pso2_watcher(message.channel)
-                return Response()
+            # Watcher is currently in progress of stopping, disable the stopflag to re-enable the watcher
+            elif server_dict['pso2_stopflag'] == True:
+                server_dict['pso2_stopflag'] = False
+                await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
+                    % (server_dict['pso2_channel']))
+            # Watcher already active
             else:
                 return Response("Kiyu is already watching for EQs in `#%s`!" % (server_dict['pso2_channel']))
         elif query == "off":
-            if (server_dict['pso2_channel'] == None):
+            # Do nothing if watcher isn't active, or if the stopflag is already enabled
+            if server_dict['pso2_channel'] == None or server_dict['pso2_stopflag'] == True:
                 return Response("Kiyu isn't even watching for any EQs in the first place!!")
+                
             else:
-                temp_channel = server_dict['pso2_channel']
-                server_dict['pso2_channel'] = None
-                return Response("Kiyu is no longer watching for EQs in `#%s` anymore." % (temp_channel))
+                # Trigger a flag to stop the watcher after next tick
+                server_dict['pso2_stopflag'] = True
+                return Response("Kiyu is no longer watching for EQs in `#%s` anymore." % (server_dict['pso2_channel']))
+                
         else:
-            if (server_dict['pso2_channel'] == None):
+            if server_dict['pso2_channel'] == None:
                 return Response("Kiyu isn't watching for any EQs right now.")
             else:
                 return Response("Kiyu is currently watching for EQs in `#%s`." % (server_dict['pso2_channel']))
@@ -338,7 +349,7 @@ class MusicBot(discord.Client):
     
         url = 'http://pso2emq.flyergo.eu/api/v2/'
         
-        while server_dict['pso2_channel'] != None:
+        while server_dict['pso2_stopflag'] == False:
             response = requests.get(url)
             
             # Something went wrong with fetch
@@ -351,8 +362,6 @@ class MusicBot(discord.Client):
             
             json_object = json.loads(response.text)
             eq_text = "```%s" % (json_object[0]["text"])
-            
-            print(eq_text)
             
             if server_dict['pso2_previous_message_text'] != eq_text:
                 server_dict['pso2_previous_message_text'] = eq_text
@@ -383,6 +392,10 @@ class MusicBot(discord.Client):
                 await self.safe_send_message(channel, eq_text)    
             # Wait 220 seconds between checks
             await asyncio.sleep(220)
+        
+        # After stopped
+        server_dict['pso2_channel'] = None
+        
             
     async def cmd_pusheen(self):
         """
@@ -724,12 +737,10 @@ class MusicBot(discord.Client):
         try:
             # Test if seconds given was a number
             seconds = int(query_split[0])
-            print(seconds)
             
             try:
                 # Attempt assuming there's a reminder message
                 remember = query_split[1]
-                print(remember)
                 endtimer = self.safe_send_message(
                     message.channel, message.author.mention + ", your timer for " + str(seconds) + 
                         " seconds has expired! Kiyu was instructed to remind you about `" + remember + "`!")
