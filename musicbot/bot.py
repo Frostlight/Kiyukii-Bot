@@ -737,7 +737,6 @@ class MusicBot(discord.Client):
         # Form URL based on whether or not a query was input
         url = 'http://safebooru.org/index.php?page=dapi&s=post&q=index%s' % \
             ('' if len(query) == 0 else '&tags=' + query.replace(' ', '+'))
-        print(url)
         xml = untangle.parse(url)
         
         # Maximum results = 100
