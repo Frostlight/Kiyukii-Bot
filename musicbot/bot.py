@@ -309,19 +309,20 @@ class MusicBot(discord.Client):
         if query == "on":
             # Start the watcher
             if server_dict['pso2_channel'] == None:
-                server_dict['pso2_channel'] = message.channel.name
+                server_dict['pso2_channel'] = message.channel
                 server_dict['pso2_stopflag'] = False
                 await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
-                    % (server_dict['pso2_channel']))
+                    % (server_dict['pso2_channel'].name))
                 await self.pso2_watcher(message.channel)
             # Watcher is currently in progress of stopping, disable the stopflag to re-enable the watcher
             elif server_dict['pso2_stopflag'] == True:
+                server_dict['pso2_channel'] = message.channel
                 server_dict['pso2_stopflag'] = False
                 await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
-                    % (server_dict['pso2_channel']))
+                    % (server_dict['pso2_channel'].name))
             # Watcher already active
             else:
-                return Response("Kiyu is already watching for EQs in `#%s`!" % (server_dict['pso2_channel']))
+                return Response("Kiyu is already watching for EQs in `#%s`!" % (server_dict['pso2_channel'].name))
         elif query == "off":
             # Do nothing if watcher isn't active, or if the stopflag is already enabled
             if server_dict['pso2_channel'] == None or server_dict['pso2_stopflag'] == True:
@@ -330,13 +331,13 @@ class MusicBot(discord.Client):
             else:
                 # Trigger a flag to stop the watcher after next tick
                 server_dict['pso2_stopflag'] = True
-                return Response("Kiyu is no longer watching for EQs in `#%s` anymore." % (server_dict['pso2_channel']))
+                return Response("Kiyu is no longer watching for EQs in `#%s` anymore." % (server_dict['pso2_channel'].name))
                 
         else:
             if server_dict['pso2_channel'] == None:
                 return Response("Kiyu isn't watching for any EQs right now.")
             else:
-                return Response("Kiyu is currently watching for EQs in `#%s`." % (server_dict['pso2_channel']))
+                return Response("Kiyu is currently watching for EQs in `#%s`." % (server_dict['pso2_channel'].name))
         
     async def pso2_watcher(self, channel):
         """
@@ -355,9 +356,9 @@ class MusicBot(discord.Client):
             # Something went wrong with fetch
             if response.status_code != 200:
                 server_dict['pso2_channel'] = None
-                await self.safe_send_message(channel, "Something went wrong!\n" \
+                await self.safe_send_message(server_dict['pso2_channel'], "Something went wrong!\n" \
                     "Kiyu couldn't get the EQ notifications, so she will stop watching for EQs in `#%s` now."
-                    % (channel.name))
+                    % server_dict['pso2_channel'].name)
                 break
             
             json_object = json.loads(response.text)
@@ -389,7 +390,7 @@ class MusicBot(discord.Client):
                         eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour)
                         
                 # Send the notification
-                await self.safe_send_message(channel, eq_text)    
+                await self.safe_send_message(server_dict['pso2_channel'], eq_text)    
             # Wait 220 seconds between checks
             await asyncio.sleep(220)
         
@@ -735,8 +736,8 @@ class MusicBot(discord.Client):
         
         # Form URL based on whether or not a query was input
         url = 'http://safebooru.org/index.php?page=dapi&s=post&q=index%s' % \
-            ('' if len(query) == 0 else '&tags=' + query)
-            
+            ('' if len(query) == 0 else '&tags=' + query.replace(' ', '+'))
+        print(url)
         xml = untangle.parse(url)
         
         # Maximum results = 100
