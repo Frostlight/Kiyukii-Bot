@@ -6,6 +6,29 @@ from .constants import DISCORD_MSG_CHAR_LIMIT
 
 _USER_ID_MATCH = re.compile(r'<@(\d+)>')
 
+def load_file(filename, skip_commented_lines=True, comment_char='#'):
+    try:
+        with open(filename, encoding='utf8') as f:
+            results = []
+            for line in f:
+                line = line.strip()
+
+                if line and not (skip_commented_lines and line.startswith(comment_char)):
+                    results.append(line)
+
+            return results
+
+    except IOError as e:
+        print("Error loading", filename, e)
+        return []
+
+
+def write_file(filename, contents):
+    with open(filename, 'w', encoding='utf8') as f:
+        for item in contents:
+            f.write(str(item))
+            f.write('\n')
+
 def extract_user_id(argument):
     match = _USER_ID_MATCH.match(argument)
     if match:

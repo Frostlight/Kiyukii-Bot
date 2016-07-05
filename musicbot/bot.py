@@ -36,6 +36,7 @@ from bs4 import BeautifulSoup as bs
 
 from musicbot.config import Config, ConfigDefaults
 from musicbot.permissions import Permissions, PermissionsDefaults
+from musicbot.utils import load_file, write_file, sane_round_int
 
 from . import exceptions
 from .constants import VERSION as BOTVERSION
@@ -81,10 +82,22 @@ class MusicBot(discord.Client):
         # Initialise PyDictionaryMod
         self.dictionary = PyDictionaryMod()
         
+        # Initialise PSO2 chanel list
+        self.pso2_channels = load_file('musicbot/resources/pso2.txt')
+        
+        # Create pso2_channels (empty list) if it doesn't exist
+        if len(self.pso2_channels) == 0:
+            self.pso2_channels = []
+            
+        # Initialise pso2 values
+        self.pso2_previous_message_text = None
+        self.pso2_status = False
+
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
         ssd_defaults = {'last_np_msg': None, 'auto_paused': False}
         self.server_specific_data = defaultdict(lambda: dict(ssd_defaults))
+        
 
     def owner_only(func):
         @wraps(func)
@@ -233,10 +246,9 @@ class MusicBot(discord.Client):
 
         else:
             traceback.print_exc()
-
+            
     async def on_ready(self):
         print('\rConnected!  KiyukiiBot v%s\n' % BOTVERSION)
-
         if self.config.owner_id == self.user.id:
             raise exceptions.HelpfulError(
                 "Your OwnerID is incorrect or you've used the wrong credentials.",
@@ -287,6 +299,22 @@ class MusicBot(discord.Client):
         print("  Debug Mode: " + ['Disabled', 'Enabled'][self.config.debug_mode])
         print()
         
+        # Resume sending EQs in PSO2 enabled channels
+        # Remove dead channels first
+        pso2_channels_pruned = [id for id in self.pso2_channels if not self.get_channel(id=id) == None]
+        
+        # Update file if items were pruned
+        if len(pso2_channels_pruned) < len(self.pso2_channels):
+            self.pso2_channels = pso2_channels_pruned
+            write_file('musicbot/resources/pso2.txt', self.pso2_channels)
+            print("Pruned dead channel(s).")
+            
+        
+        # Start watching EQs, even if there are no enabled channels
+        # This is so -pso2 will return the last displayed alert
+        self.pso2_status = True
+        await self.pso2_watcher()
+        
     async def cmd_pso2(self, message):
         """
         Usage:
@@ -294,78 +322,60 @@ class MusicBot(discord.Client):
 
         Turns on pso2 EQ notifications for the channel.
         """
-        
-        # This function uses server-specific data
-        server_dict = self.server_specific_data[message.channel.server]
-        
-        # Initialise pso2 notification values if not done yet
-        if 'pso2_channel' not in server_dict:
-            server_dict['pso2_channel'] = None
-            server_dict['pso2_previous_message_text'] = None
-            server_dict['pso2_stopflag'] = None
-        
         query = message.content.replace(self.config.command_prefix + 'pso2', '').strip()
-        
+
         if query == "on":
-            # Start the watcher
-            if server_dict['pso2_channel'] == None:
-                server_dict['pso2_channel'] = message.channel
-                server_dict['pso2_stopflag'] = False
+            # Add current channel if it's not on the list
+            if message.channel.id not in self.pso2_channels:
+                self.pso2_channels.append(message.channel.id)
+                # Save in file
+                write_file('musicbot/resources/pso2.txt', self.pso2_channels)
                 await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
-                    % (server_dict['pso2_channel'].name))
-                await self.pso2_watcher(message.channel)
-            # Watcher is currently in progress of stopping, disable the stopflag to re-enable the watcher
-            elif server_dict['pso2_stopflag'] == True:
-                server_dict['pso2_channel'] = message.channel
-                server_dict['pso2_stopflag'] = False
-                await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
-                    % (server_dict['pso2_channel'].name))
-            # Watcher already active
+                    % (message.channel.name))
+            # Notify if current channel is already on the list
             else:
-                return Response("Kiyu is already watching for EQs in `#%s`!" % (server_dict['pso2_channel'].name))
+                await self.safe_send_message(message.channel, "Kiyu is already watching for EQs in `#%s`!" % (message.channel.name))
         elif query == "off":
-            # Do nothing if watcher isn't active, or if the stopflag is already enabled
-            if server_dict['pso2_channel'] == None or server_dict['pso2_stopflag'] == True:
-                return Response("Kiyu isn't even watching for any EQs in the first place!!")
-                
+            # Remove current channel if it's on the list
+            if message.channel.id in self.pso2_channels:
+                self.pso2_channels.remove(message.channel.id)
+                # Save in file
+                write_file('musicbot/resources/pso2.txt', self.pso2_channels)
+                await self.safe_send_message(message.channel, "Kiyu is no longer watching for EQs in `#%s` anymore.\n" 
+                    % (message.channel.name))
+            # Current channel isn't on the list
             else:
-                # Trigger a flag to stop the watcher after next tick
-                server_dict['pso2_stopflag'] = True
-                return Response("Kiyu is no longer watching for EQs in `#%s` anymore." % (server_dict['pso2_channel'].name))
-                
+                await self.safe_send_message(message.channel, \
+                    "Kiyu isn't even watching for any EQs in `#%s` in the first place!!" % (message.channel.name))
+        # No valid argument, just return the current EQ alert
         else:
-            if server_dict['pso2_channel'] == None:
-                return Response("Kiyu isn't watching for any EQs right now.")
-            else:
-                return Response("Kiyu is currently watching for EQs in `#%s`." % (server_dict['pso2_channel'].name))
+            await self.safe_send_message(message.channel, self.pso2_previous_message_text)
+            
+        # Start the watcher if it's not active
+        if not self.pso2_status:
+            self.pso2_status = True
+            await self.pso2_watcher()
         
-    async def pso2_watcher(self, channel):
+    async def pso2_watcher(self):
         """
         Periodically checks for PSO2 Emergency Quest updates
         Used by cmd_pso2()
         """
-    
-        # This function uses server-specific data
-        server_dict = self.server_specific_data[channel.server]
-    
         url = 'http://pso2emq.flyergo.eu/api/v2/'
         
-        while server_dict['pso2_stopflag'] == False:
+        while True:
             response = requests.get(url)
             
             # Something went wrong with fetch
             if response.status_code != 200:
-                server_dict['pso2_channel'] = None
-                await self.safe_send_message(server_dict['pso2_channel'], "Something went wrong!\n" \
-                    "Kiyu couldn't get the EQ notifications, so she will stop watching for EQs in `#%s` now."
-                    % server_dict['pso2_channel'].name)
+                self.pso2_status = False
                 break
             
             json_object = json.loads(response.text)
             eq_text = "```%s" % (json_object[0]["text"])
             
-            if server_dict['pso2_previous_message_text'] != eq_text:
-                server_dict['pso2_previous_message_text'] = eq_text
+            if self.pso2_previous_message_text != eq_text:
+                self.pso2_previous_message_text = eq_text
                 
                 # If all ships have a scheduled emergency quest active, or if there are zero reports, no need for an ETA
                 if eq_text.find("[In Progress]") != -1 or eq_text.find("no report") != -1:
@@ -388,14 +398,21 @@ class MusicBot(discord.Client):
                     # Default case, post random emergency quests
                     else:
                         eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour)
-                        
-                # Send the notification
-                await self.safe_send_message(server_dict['pso2_channel'], eq_text)    
+                
+                # Remove dead channels first
+                pso2_channels_pruned = [id for id in self.pso2_channels if not self.get_channel(id=id) == None]
+                
+                # Update file if items were pruned
+                if len(pso2_channels_pruned) < len(self.pso2_channels):
+                    self.pso2_channels = pso2_channels_pruned
+                    write_file('musicbot/resources/pso2.txt', self.pso2_channels)
+                    print("Pruned dead channel(s).")
+                
+                # Send the notification to all registered servers
+                for channel in self.pso2_channels:
+                    await self.safe_send_message(self.get_channel(id=channel), eq_text)    
             # Wait 220 seconds between checks
             await asyncio.sleep(220)
-        
-        # After stopped
-        server_dict['pso2_channel'] = None
         
             
     async def cmd_pusheen(self):
@@ -655,10 +672,7 @@ class MusicBot(discord.Client):
         """
     
         # 8ball replies are located in this file
-        with open("musicbot/resources/8ball.txt", "r") as f:
-            data = f.read()
-        data = data.split("\n")
-        
+        data = load_file('musicbot/resources/8ball.txt')
         return Response(random.choice(data)) 
                 
     async def cmd_tsun(self):
@@ -670,9 +684,7 @@ class MusicBot(discord.Client):
         """
         
         # Tsundere lines are located in this file
-        with open("musicbot/resources/tsun.txt", "r") as f:
-            data = f.read()
-        data = data.split("\n")
+        data = load_file('musicbot/resources/tsun.txt')
 
         return Response(random.choice(data)) 
     
@@ -685,10 +697,7 @@ class MusicBot(discord.Client):
         """
         
         # Links to Kiyu pictures are located in this file
-        with open("musicbot/resources/kiyu.txt", "r") as f:
-            data = f.read()
-        data = data.split("\n")
-        
+        data = load_file("musicbot/resources/kiyu.txt", "r") 
         return Response("Kiyu ♪♪\n" + random.choice(data)) 
         
     async def cmd_honk(self):
@@ -700,10 +709,7 @@ class MusicBot(discord.Client):
         """
             
         # Links to Chen pictures are located in this file
-        with open("musicbot/resources/honk.txt", "r") as f:
-            data = f.read()
-        data = data.split("\n")
-
+        data = load_file("musicbot/resources/honk.txt", "r")
         return Response("Honk honk!\n" + random.choice(data))
         
     async def cmd_cat(self):
