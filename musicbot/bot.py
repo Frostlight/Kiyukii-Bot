@@ -353,7 +353,7 @@ class MusicBot(discord.Client):
                     "Kiyu isn't even watching for any EQs in `#%s` in the first place!!" % (message.channel.name))
         # No valid argument, just return the current EQ alert
         else:
-            await self.safe_send_message(message.channel, self.pso2_previous_message_text)
+            await self.safe_send_message(message.channel, self.pso2_previous_message_text + "```")
             
         # Start the watcher if it's not active
         if not self.pso2_status:
