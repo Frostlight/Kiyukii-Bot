@@ -309,7 +309,11 @@ class MusicBot(discord.Client):
             write_file('musicbot/resources/pso2.txt', self.pso2_channels)
             print("Pruned dead channel(s).")
             
-        
+        # Notify enabled channels about restart (or start)
+        for channel_id in self.pso2_channels:
+            channel = self.get_channel(channel_id)
+            await self.safe_send_message(channel, "Kiyu restarted and will continue watching for EQs in `#%s`.\n" % (channel.name)) 
+            
         # Start watching EQs, even if there are no enabled channels
         # This is so -pso2 will return the last displayed alert
         self.pso2_status = True
