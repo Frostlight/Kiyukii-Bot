@@ -69,6 +69,7 @@ class Config:
         self.delete_invoking = config.getboolean('MusicBot', 'DeleteInvoking', fallback=ConfigDefaults.delete_invoking)
         self.debug_mode = config.getboolean('MusicBot', 'DebugMode', fallback=ConfigDefaults.debug_mode)
 
+        self.pso2_channels = config.get('MusicBot', 'PSO2Channels', fallback=ConfigDefaults.pso2_channels)
         self.run_checks()
 
 
@@ -154,6 +155,7 @@ class ConfigDefaults:
     debug_mode = False
 
     options_file = 'config/options.ini'
+    pso2_channels = set()
 
 # These two are going to be wrappers for the id lists, with add/remove/load/save functions
 # and id/object conversion so types aren't an issue

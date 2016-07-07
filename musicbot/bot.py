@@ -89,6 +89,10 @@ class MusicBot(discord.Client):
         if len(self.pso2_channels) == 0:
             self.pso2_channels = []
             
+        # Add bound pso2 channels to the list if there are any
+        if len(self.config.pso2_channels) > 0:
+            self.pso2_channels += self.config.pso2_channels.split()
+            
         # Initialise pso2 values
         self.pso2_previous_message_text = None
         self.pso2_status = False
