@@ -760,7 +760,11 @@ class MusicBot(discord.Client):
         if num_results == 0:
             return Response("Kiyu couldn't find any pictures for `%s`." % query)
         
-        return Response(xml.posts.post[random.randint(0, num_results-1)]['file_url'])  
+        try:
+            return Response(xml.posts.post[random.randint(0, num_results-1)]['file_url'])  
+        # Type returned probably NoneType
+        except TypeError:
+            return Response("Kiyu couldn't find any pictures for `%s`." % query)
 
     async def cmd_timer(self, message):
         """
