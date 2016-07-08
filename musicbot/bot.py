@@ -95,7 +95,6 @@ class MusicBot(discord.Client):
             
         # Initialise pso2 values
         self.pso2_previous_message_text = None
-        self.pso2_status = False
 
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
@@ -320,7 +319,6 @@ class MusicBot(discord.Client):
             
         # Start watching EQs, even if there are no enabled channels
         # This is so -pso2 will return the last displayed alert
-        self.pso2_status = True
         await self.pso2_watcher()
         
     async def cmd_pso2(self, message):
@@ -358,11 +356,6 @@ class MusicBot(discord.Client):
         # No valid argument, just return the current EQ alert
         else:
             await self.safe_send_message(message.channel, self.pso2_previous_message_text + "```")
-            
-        # Start the watcher if it's not active
-        if not self.pso2_status:
-            self.pso2_status = True
-            await self.pso2_watcher()
         
     async def pso2_watcher(self):
         """
@@ -376,11 +369,17 @@ class MusicBot(discord.Client):
             
             # Something went wrong with fetch
             if response.status_code != 200:
-                self.pso2_status = False
-                break
+                await asyncio.sleep(220)
+                continue
             
             json_object = json.loads(response.text)
-            eq_text = "```%s" % (json_object[0]["text"])
+            
+            try:
+                eq_text = "```%s" % (json_object[0]["text"])
+            # Something went wrong with values returned
+            except IndexError:
+                await asyncio.sleep(220)
+                continue
             
             if self.pso2_previous_message_text != eq_text:
                 self.pso2_previous_message_text = eq_text
