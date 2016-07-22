@@ -365,7 +365,12 @@ class MusicBot(discord.Client):
         url = 'http://pso2emq.flyergo.eu/api/v2/'
         
         while True:
-            response = requests.get(url)
+            try:
+                response = requests.get(url)
+            except Exception:
+                # Wait 220 seconds first before continuing
+                await asyncio.sleep(220)
+                continue
             
             # Something went wrong with fetch
             if response.status_code != 200:
