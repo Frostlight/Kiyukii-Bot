@@ -512,14 +512,13 @@ class MusicBot(discord.Client):
         """
         query = message.content.replace(self.config.command_prefix + 'urban', '').strip()
         
-        # Replace spaces with %20 for lookup only
-        query_replaced = query.replace(' ', '%20')
-        
         # No term specified
-        if len(query_replaced) == 0:
+        if len(query) == 0:
             return Response("Kiyu needs something to look up!")
         
-        url = "http://www.urbandictionary.com/define.php?term={}".format(query_replaced)
+        # Replace spaces with %20 for lookup only
+        url = "http://www.urbandictionary.com/define.php?term={}".format(query.replace(' ', '%20'))
+        
         with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
                 r = await resp.read()
