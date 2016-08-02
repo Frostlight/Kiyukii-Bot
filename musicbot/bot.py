@@ -367,22 +367,16 @@ class MusicBot(discord.Client):
         while True:
             try:
                 response = requests.get(url)
+                
+                # Something went wrong with fetch
+                if response.status_code != 200:
+                    await asyncio.sleep(220)
+                    continue
+                
+                json_object = json.loads(response.text)
+                eq_text = "```%s" % (json_object[0]["text"])
             except Exception:
                 # Wait 220 seconds first before continuing
-                await asyncio.sleep(220)
-                continue
-            
-            # Something went wrong with fetch
-            if response.status_code != 200:
-                await asyncio.sleep(220)
-                continue
-            
-            json_object = json.loads(response.text)
-            
-            try:
-                eq_text = "```%s" % (json_object[0]["text"])
-            # Something went wrong with values returned
-            except IndexError:
                 await asyncio.sleep(220)
                 continue
             
