@@ -606,36 +606,6 @@ class MusicBot(discord.Client):
             return Response(time_string)
         except pytz.UnknownTimeZoneError:
             return Response("Kiyu doesn't know any timezones that look like `%s`." % (query))
-        
-        
-    
-    async def cmd_xkcd(self, message):
-        """
-        Usage:
-            {command_prefix}xkcd
-
-        Queries a random XKCD comic.
-        Do {command_prefix}xkcd <number from 1-1662> to pick a specific comic.
-        """
-        
-        query = message.content.replace(self.config.command_prefix + 'xkcd', '').strip()
-        
-        if len(query) == 0:
-            i = random.randint(1, 1662)
-            url = "https://xkcd.com/{}/".format(i)
-        elif query.isdigit() and int(query) >= 1 and int(query) <= 1662:
-            url = "https://xkcd.com/{}/".format(query)
-        elif int(query) <= 0 or int(query) >= 1663:
-            return Response("It has to be between 1 and 1662!", delete_after=20)
-        elif not query.isdigit():
-            return Response("You have to put a number!", delete_after=20)
-
-        with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                r = await resp.read()
-        resp = bs(r,'html.parser')
-        return Response(":mag:**" + resp('img')[1]['alt'] + "**\nhttp:" + 
-            resp('img')[1]['src'] + "\n" + resp('img')[1]['title'], delete_after=20)
             
     async def cmd_penguin(self):
         """
@@ -1175,11 +1145,13 @@ class MusicBot(discord.Client):
         else:
             await self.change_status(game=None)
             return Response("Kiyu is no longer playing.")     
-        
+    
+    @owner_only    
     async def cmd_restart(self, channel):
         await self.safe_send_message(channel, ":wave:")
         raise exceptions.RestartSignal
 
+    @owner_only
     async def cmd_shutdown(self, channel):
         await self.safe_send_message(channel, ":wave:")
         raise exceptions.TerminateSignal
