@@ -852,7 +852,7 @@ class MusicBot(discord.Client):
 
         # Send a blank message and edit it right away to make it show (edited) below the box
         # for properly aligning
-        roulette_message = await self.safe_send_message(message.channel, " ")
+        roulette_message = await self.safe_send_message(message.channel, "Kiyu〜")
         await self.safe_edit_message(roulette_message, "```%s\n\n ```" % (roulette_list[0]))
         await asyncio.sleep(1)
         await self.safe_edit_message(roulette_message, "```%s\n%s\n ```" % (roulette_list[0], roulette_list[1]))
