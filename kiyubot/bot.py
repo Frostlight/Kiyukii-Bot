@@ -366,7 +366,7 @@ class KiyuBot(discord.Client):
             
             # Split the time string so we can strip zeroes off the hour and day
             time_string = "```Current Time\n" + timezone_time.strftime('%H:%M') + " JST```"
-            await self.safe_send_message(message.channel, self.pso2_previous_message_text + "```" + time_string)
+            await self.safe_send_message(message.channel, self.pso2_previous_message_text + "```\n" + time_string)
         
     async def pso2_watcher(self):
         """
