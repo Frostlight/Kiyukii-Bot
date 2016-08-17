@@ -360,8 +360,8 @@ class MusicBot(discord.Client):
             
             """
             Format is:
-            10:00 AM
-            Time in Japan
+            Current Time
+            23:00 JST
             """
             
             # Split the time string so we can strip zeroes off the hour and day
