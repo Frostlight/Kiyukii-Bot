@@ -394,27 +394,21 @@ class KiyuBot(discord.Client):
             if self.pso2_previous_message_text != eq_text:
                 self.pso2_previous_message_text = eq_text
                 
-                # If all ships have a scheduled emergency quest active, or if there are zero reports, no need for an ETA
-                if eq_text.find("[In Progress]") != -1 or eq_text.find("no report") != -1:
-                    eq_text += "```"
-                else: 
-                    # Post the minutes until next hour along with the notification
-                    current_minutes = datetime.now().minute
+                # Find and append current JST time to EQ text
+                current_time_utc = pytz.utc.localize(datetime.utcnow())
+                timezone_time = current_time_utc.astimezone(pytz.timezone("Japan"))
                 
-                    # Initial value is minutes to next hour
-                    minutes_to_next_hour = 60 - current_minutes
-                    
-                    if eq_text.find("[In Preparation]") != -1:
-                        eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour)
-                    elif eq_text.find("[1 hour later]") != -1:
-                        eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour + 60)
-                    elif eq_text.find("[2 hours later]") != -1:
-                        eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour + 120)
-                    elif eq_text.find("no emergency quest") != -1:
-                        eq_text += "```"
-                    # Default case, post random emergency quests
-                    else:
-                        eq_text += "\n\nBegins in %d minutes.```" % (minutes_to_next_hour)
+                """
+                Format is:
+                Current Time
+                23:00 JST
+                """
+                
+                # Split the time string so we can strip zeroes off the hour and day
+                time_string = "```Current Time\n" + timezone_time.strftime('%H:%M') + " JST```"
+                
+                # Append current JST time to EQ text
+                eq_text += "```\n" + time_string
                 
                 # Remove dead channels first
                 pso2_channels_pruned = [id for id in self.pso2_channels if not self.get_channel(id=id) == None]
