@@ -34,9 +34,9 @@ from collections import defaultdict
 
 from bs4 import BeautifulSoup as bs
 
-from musicbot.config import Config, ConfigDefaults
-from musicbot.permissions import Permissions, PermissionsDefaults
-from musicbot.utils import load_file, write_file, sane_round_int
+from kiyubot.config import Config, ConfigDefaults
+from kiyubot.permissions import Permissions, PermissionsDefaults
+from kiyubot.utils import load_file, write_file, sane_round_int
 
 from . import exceptions
 from .constants import VERSION as BOTVERSION
@@ -68,7 +68,7 @@ class Response:
         self.delete_after = delete_after
 
 
-class MusicBot(discord.Client):
+class KiyuBot(discord.Client):
     def __init__(self, config_file=ConfigDefaults.options_file, perms_file=PermissionsDefaults.perms_file):
         super().__init__()
 
@@ -83,7 +83,7 @@ class MusicBot(discord.Client):
         self.dictionary = PyDictionaryMod()
         
         # Initialise PSO2 chanel list
-        self.pso2_channels = load_file('musicbot/resources/pso2.txt')
+        self.pso2_channels = load_file('kiyubot/resources/pso2.txt')
         
         # Create pso2_channels (empty list) if it doesn't exist
         if len(self.pso2_channels) == 0:
@@ -96,7 +96,7 @@ class MusicBot(discord.Client):
         # Initialise pso2 values
         self.pso2_previous_message_text = None
 
-        self.http.user_agent += ' MusicBot/%s' % BOTVERSION
+        self.http.user_agent += ' KiyuBot/%s' % BOTVERSION
 
         ssd_defaults = {'last_np_msg': None, 'auto_paused': False}
         self.server_specific_data = defaultdict(lambda: dict(ssd_defaults))
@@ -309,7 +309,7 @@ class MusicBot(discord.Client):
         # Update file if items were pruned
         if len(pso2_channels_pruned) < len(self.pso2_channels):
             self.pso2_channels = pso2_channels_pruned
-            write_file('musicbot/resources/pso2.txt', self.pso2_channels)
+            write_file('kiyubot/resources/pso2.txt', self.pso2_channels)
             print("Pruned dead channel(s).")
             
         # Notify enabled channels about restart (or start)
@@ -335,7 +335,7 @@ class MusicBot(discord.Client):
             if message.channel.id not in self.pso2_channels:
                 self.pso2_channels.append(message.channel.id)
                 # Save in file
-                write_file('musicbot/resources/pso2.txt', self.pso2_channels)
+                write_file('kiyubot/resources/pso2.txt', self.pso2_channels)
                 await self.safe_send_message(message.channel, "Kiyu will now watch for EQs and tell you in `#%s`.\n" 
                     % (message.channel.name))
             # Notify if current channel is already on the list
@@ -346,7 +346,7 @@ class MusicBot(discord.Client):
             if message.channel.id in self.pso2_channels:
                 self.pso2_channels.remove(message.channel.id)
                 # Save in file
-                write_file('musicbot/resources/pso2.txt', self.pso2_channels)
+                write_file('kiyubot/resources/pso2.txt', self.pso2_channels)
                 await self.safe_send_message(message.channel, "Kiyu is no longer watching for EQs in `#%s` anymore.\n" 
                     % (message.channel.name))
             # Current channel isn't on the list
@@ -422,7 +422,7 @@ class MusicBot(discord.Client):
                 # Update file if items were pruned
                 if len(pso2_channels_pruned) < len(self.pso2_channels):
                     self.pso2_channels = pso2_channels_pruned
-                    write_file('musicbot/resources/pso2.txt', self.pso2_channels)
+                    write_file('kiyubot/resources/pso2.txt', self.pso2_channels)
                     print("Pruned dead channel(s).")
                 
                 # Send the notification to all registered servers
@@ -661,7 +661,7 @@ class MusicBot(discord.Client):
         """
     
         # 8ball replies are located in this file
-        data = load_file('musicbot/resources/8ball.txt')
+        data = load_file('kiyubot/resources/8ball.txt')
         return Response(random.choice(data)) 
                 
     async def cmd_tsun(self):
@@ -673,7 +673,7 @@ class MusicBot(discord.Client):
         """
         
         # Tsundere lines are located in this file
-        data = load_file('musicbot/resources/tsun.txt')
+        data = load_file('kiyubot/resources/tsun.txt')
 
         return Response(random.choice(data)) 
     
@@ -686,7 +686,7 @@ class MusicBot(discord.Client):
         """
         
         # Links to Kiyu pictures are located in this file
-        data = load_file("musicbot/resources/kiyu.txt", "r") 
+        data = load_file("kiyubot/resources/kiyu.txt", "r") 
         return Response("Kiyu ♪♪\n" + random.choice(data)) 
         
     async def cmd_honk(self):
@@ -698,7 +698,7 @@ class MusicBot(discord.Client):
         """
             
         # Links to Chen pictures are located in this file
-        data = load_file("musicbot/resources/honk.txt", "r")
+        data = load_file("kiyubot/resources/honk.txt", "r")
         return Response("Honk honk!\n" + random.choice(data))
         
     async def cmd_cat(self):
@@ -1359,5 +1359,5 @@ class MusicBot(discord.Client):
 
 
 if __name__ == '__main__':
-    bot = MusicBot()
+    bot = KiyuBot()
     bot.run()

@@ -45,7 +45,7 @@ class Config:
         config = configparser.ConfigParser(interpolation=None)
         config.read(config_file, encoding='utf-8')
 
-        confsections = {"Credentials", "Permissions", "Chat", "MusicBot"}.difference(config.sections())
+        confsections = {"Credentials", "Permissions", "Chat", "KiyuBot"}.difference(config.sections())
         if confsections:
             raise HelpfulError(
                 "One or more required config sections are missing.",
@@ -65,11 +65,11 @@ class Config:
         self.owner_id = config.get('Permissions', 'OwnerID', fallback=ConfigDefaults.owner_id)
         self.command_prefix = config.get('Chat', 'CommandPrefix', fallback=ConfigDefaults.command_prefix)
         self.bound_channels = config.get('Chat', 'BindToChannels', fallback=ConfigDefaults.bound_channels)
-        self.delete_messages  = config.getboolean('MusicBot', 'DeleteMessages', fallback=ConfigDefaults.delete_messages)
-        self.delete_invoking = config.getboolean('MusicBot', 'DeleteInvoking', fallback=ConfigDefaults.delete_invoking)
-        self.debug_mode = config.getboolean('MusicBot', 'DebugMode', fallback=ConfigDefaults.debug_mode)
+        self.delete_messages  = config.getboolean('KiyuBot', 'DeleteMessages', fallback=ConfigDefaults.delete_messages)
+        self.delete_invoking = config.getboolean('KiyuBot', 'DeleteInvoking', fallback=ConfigDefaults.delete_invoking)
+        self.debug_mode = config.getboolean('KiyuBot', 'DebugMode', fallback=ConfigDefaults.debug_mode)
 
-        self.pso2_channels = config.get('MusicBot', 'PSO2Channels', fallback=ConfigDefaults.pso2_channels)
+        self.pso2_channels = config.get('KiyuBot', 'PSO2Channels', fallback=ConfigDefaults.pso2_channels)
         self.run_checks()
 
 

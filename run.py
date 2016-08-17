@@ -153,9 +153,9 @@ def main():
     while tryagain:
 
         try:
-            from musicbot import MusicBot
+            from kiyubot import KiyuBot
 
-            m = MusicBot()
+            m = KiyuBot()
             print("Connecting...", end='', flush=True)
             m.run()
 
@@ -184,7 +184,7 @@ def main():
                 break
 
         except Exception as e:
-            if hasattr(e, '__module__') and e.__module__ == 'musicbot.exceptions':
+            if hasattr(e, '__module__') and e.__module__ == 'kiyubot.exceptions':
                 if e.__class__.__name__ == 'HelpfulError':
                     print(e.message)
                     break

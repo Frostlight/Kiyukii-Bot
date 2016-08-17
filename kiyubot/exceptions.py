@@ -2,7 +2,7 @@ import shutil
 import textwrap
 
 # Base class for exceptions
-class MusicbotException(Exception):
+class KiyubotException(Exception):
     def __init__(self, message, *, expire_in=0):
         self._message = message
         self.expire_in = expire_in
@@ -16,11 +16,11 @@ class MusicbotException(Exception):
         return self._message
 
 # Something went wrong during the processing of a command
-class CommandError(MusicbotException):
+class CommandError(KiyubotException):
     pass
 
 # Something went wrong during the processing of a song/ytdl stuff
-class ExtractionError(MusicbotException):
+class ExtractionError(KiyubotException):
     pass
 
 # The no processing entry type failed and an entry was a playlist/vice versa
@@ -37,7 +37,7 @@ class PermissionsError(CommandError):
         return "You don't have permission to use that command.\nReason: " + self._message
 
 # Error with pretty formatting for hand-holding users through various errors
-class HelpfulError(MusicbotException):
+class HelpfulError(KiyubotException):
     def __init__(self, issue, solution, *, preface="An error has occured:\n", expire_in=0):
         self.issue = issue
         self.solution = solution
