@@ -355,7 +355,18 @@ class MusicBot(discord.Client):
                     "Kiyu isn't even watching for any EQs in `#%s` in the first place!!" % (message.channel.name))
         # No valid argument, just return the current EQ alert
         else:
-            await self.safe_send_message(message.channel, self.pso2_previous_message_text + "```")
+            current_time_utc = pytz.utc.localize(datetime.utcnow())
+            timezone_time = current_time_utc.astimezone(pytz.timezone("Japan"))
+            
+            """
+            Format is:
+            10:00 AM
+            Time in Japan
+            """
+            
+            # Split the time string so we can strip zeroes off the hour and day
+            time_string = "```Current Time\n" + timezone_time.strftime('%H:%M') + " JST```"
+            await self.safe_send_message(message.channel, self.pso2_previous_message_text + "```" + time_string)
         
     async def pso2_watcher(self):
         """
