@@ -736,6 +736,35 @@ class MusicBot(discord.Client):
         # Type returned probably NoneType
         except TypeError:
             return Response("Kiyu couldn't find any pictures for `%s`." % query)
+            
+    async def cmd_gelbooru(self, message):
+        """
+        Usage:
+            {command_prefix}gelbooru [optional query]
+
+        Sends a random picture from gelbooru
+        """
+        
+        query = message.content.replace(self.config.command_prefix + 'safebooru', '').strip()
+        
+        # Form URL based on whether or not a query was input
+        url = 'http://gelbooru.com/index.php?page=dapi&s=post&q=index%s' % \
+            ('' if len(query) == 0 else '&tags=' + query.replace(' ', '+'))
+        xml = untangle.parse(url)
+        
+        # Maximum results = 100
+        post_count = int(xml.posts['count'])
+        num_results = 100 if post_count >= 100 else post_count
+        
+        # No results
+        if num_results == 0:
+            return Response("Kiyu couldn't find any pictures for `%s`." % query)
+        
+        try:
+            return Response(xml.posts.post[random.randint(0, num_results-1)]['file_url'])  
+        # Type returned probably NoneType
+        except TypeError:
+            return Response("Kiyu couldn't find any pictures for `%s`." % query)
 
     async def cmd_timer(self, message):
         """
