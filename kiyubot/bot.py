@@ -683,6 +683,18 @@ class KiyuBot(discord.Client):
         data = load_file("kiyubot/resources/kiyu.txt", "r") 
         return Response("Kiyu ♪♪\n" + random.choice(data)) 
         
+    async def cmd_azu(self):
+        """
+        Usage:
+            {command_prefix}azu
+
+        Azu pictures!
+        """
+        
+        # Links to Azu pictures are located in this file
+        data = load_file("kiyubot/resources/azu.txt", "r") 
+        return Response("Azu〜\n" + random.choice(data)) 
+        
     async def cmd_honk(self):
         """
         Usage:
