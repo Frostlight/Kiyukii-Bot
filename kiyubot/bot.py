@@ -762,7 +762,7 @@ class KiyuBot(discord.Client):
         Sends a random picture from gelbooru
         """
         
-        query = message.content.replace(self.config.command_prefix + 'safebooru', '').strip()
+        query = message.content.replace(self.config.command_prefix + 'gelbooru', '').strip()
         
         # Form URL based on whether or not a query was input
         url = 'http://gelbooru.com/index.php?page=dapi&s=post&q=index%s' % \
