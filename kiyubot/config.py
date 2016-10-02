@@ -60,8 +60,8 @@ class Config:
         self._password = config.get('Credentials', 'Password', fallback=ConfigDefaults.password)
         self._login_token = config.get('Credentials', 'Token', fallback=ConfigDefaults.token)
 
-        self.bingkey = config.get('Credentials', 'Bingkey', fallback=ConfigDefaults.bingkey)
-        self.bingsecret = config.get('Credentials', 'Bingsecret', fallback=ConfigDefaults.bingsecret)
+        self.microsoftkey = config.get('Credentials', 'MicrosoftKey', fallback=ConfigDefaults.microsoftkey)
+        self.microsoftsecret = config.get('Credentials', 'MicrosoftSecret', fallback=ConfigDefaults.microsoftsecret)
         
         self.auth = None
 
@@ -149,8 +149,8 @@ class ConfigDefaults:
     password = None
     token = None
     
-    bingkey = None
-    bingsecret = None
+    microsoftkey = None
+    microsoftsecret = None
 
     owner_id = None
     command_prefix = '!'

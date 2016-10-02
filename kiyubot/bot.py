@@ -84,8 +84,8 @@ class KiyuBot(discord.Client):
         # Initialise PyDictionaryMod
         self.dictionary = PyDictionaryMod()
         
-        # Initialise Bing translations
-        self.translator = Translator(self.config.bingkey, self.config.bingsecret)
+        # Initialise Microsoft translations
+        self.translator = Translator(self.config.microsoftkey, self.config.microsoftsecret)
         
         # Initialise PSO2 chanel list
         self.pso2_channels = load_file('kiyubot/resources/pso2.txt')
@@ -581,10 +581,11 @@ class KiyuBot(discord.Client):
         if len(query) == 0:
             return Response("Kiyu needs something to translate!")
                 
-        translated_phrase = self.translator.translate(query, "en")
-        return Response(translated_phrase)
-        #except Exception:
-        #    return Response("Kiyu couldn't translate it for some reason.")
+        try:
+            translated_phrase = self.translator.translate(query, "en")
+            return Response(translated_phrase)
+        except Exception:
+            return Response("Kiyu couldn't translate it for some reason. Are you sure Kiyu was set up correctly!?")
         
         
         
