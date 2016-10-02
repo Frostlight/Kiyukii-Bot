@@ -581,11 +581,10 @@ class KiyuBot(discord.Client):
         if len(query) == 0:
             return Response("Kiyu needs something to translate!")
                 
-        try:
-            translated_phrase = self.translator.translate(query, "en")
-            return Response(translated_phrase)
-        except Exception:
-            return Response("Kiyu couldn't translate it for some reason")
+        translated_phrase = self.translator.translate(query, "en")
+        return Response(translated_phrase)
+        #except Exception:
+        #    return Response("Kiyu couldn't translate it for some reason.")
         
         
         
