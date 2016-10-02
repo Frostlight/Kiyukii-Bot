@@ -42,6 +42,8 @@ from . import exceptions
 from .constants import VERSION as BOTVERSION
 from .constants import DISCORD_MSG_CHAR_LIMIT
 
+from microsofttranslator import Translator
+
 class SkipState:
     def __init__(self):
         self.skippers = set()
@@ -81,6 +83,9 @@ class KiyuBot(discord.Client):
         
         # Initialise PyDictionaryMod
         self.dictionary = PyDictionaryMod()
+        
+        # Initialise Bing translations
+        self.translator = Translator(self.config.bingkey, self.config.bingsecret)
         
         # Initialise PSO2 chanel list
         self.pso2_channels = load_file('kiyubot/resources/pso2.txt')
@@ -563,6 +568,26 @@ class KiyuBot(discord.Client):
                 % (query, error_string))
         
         return Response(result_string)
+        
+    async def cmd_translate(self, message):
+        """
+        Usage:
+            {command_prefix}translate (phrase)
+
+        Translates something into English
+        """
+        query = message.content.replace(self.config.command_prefix + 'translate', '').strip().title()
+        
+        if len(query) == 0:
+            return Response("Kiyu needs something to translate!")
+                
+        try:
+            translated_phrase = self.translator.translate(query, "en")
+            return Response(translated_phrase)
+        except Exception:
+            return Response("Kiyu couldn't translate it for some reason")
+        
+        
         
     async def cmd_time(self, message):
         """

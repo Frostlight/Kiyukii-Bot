@@ -60,6 +60,9 @@ class Config:
         self._password = config.get('Credentials', 'Password', fallback=ConfigDefaults.password)
         self._login_token = config.get('Credentials', 'Token', fallback=ConfigDefaults.token)
 
+        self.bingkey = config.get('Credentials', 'Bingkey', fallback=ConfigDefaults.bingkey)
+        self.bingsecret = config.get('Credentials', 'Bingsecret', fallback=ConfigDefaults.bingsecret)
+        
         self.auth = None
 
         self.owner_id = config.get('Permissions', 'OwnerID', fallback=ConfigDefaults.owner_id)
@@ -145,6 +148,9 @@ class ConfigDefaults:
     email = None
     password = None
     token = None
+    
+    bingkey = None
+    bingsecret = None
 
     owner_id = None
     command_prefix = '!'
