@@ -774,7 +774,7 @@ class KiyuBot(discord.Client):
             return Response("Kiyu couldn't find any pictures for `%s`." % query)
         
         try:
-            return Response(xml.posts.post[random.randint(0, num_results-1)]['file_url'])  
+            return Response('http:' + xml.posts.post[random.randint(0, num_results-1)]['file_url'])  
         # Type returned probably NoneType
         except TypeError:
             return Response("Kiyu couldn't find any pictures for `%s`." % query)
