@@ -1,5 +1,5 @@
 discord.py[voice] ~= 0.12.0
-cleverbot
+cleverbot ~= 1.1.1
 untangle
 requests
 bs4

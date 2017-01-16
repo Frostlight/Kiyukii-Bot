@@ -7,6 +7,7 @@ import time
 import traceback
 import subprocess
 
+
 class GIT(object):
     @classmethod
     def works(cls):
