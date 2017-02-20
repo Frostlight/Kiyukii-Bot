@@ -639,20 +639,6 @@ class KiyuBot(discord.Client):
             return Response(time_string)
         except pytz.UnknownTimeZoneError:
             return Response("Kiyu doesn't know any timezones that look like `%s`." % (query))
-            
-    async def cmd_penguin(self):
-        """
-        Usage:
-            {command_prefix}penguin
-
-        Sends Penguins
-        """
-        url = "http://penguin.wtf/"
-        with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                r = await resp.read()
-        resp = bs(r,'html.parser')
-        return Response("Pingu pingu!\n" + resp.text, delete_after=20)
         
     async def cmd_dot(self):
         """
