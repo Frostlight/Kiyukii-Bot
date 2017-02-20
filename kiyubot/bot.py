@@ -16,7 +16,7 @@ import wikipedia
 import pytz
 import difflib
 
-from cleverbot import Cleverbot
+from cleverwrap import CleverWrap
 from PyDictionaryMod import PyDictionaryMod
 from datetime import datetime, timedelta
 
@@ -89,6 +89,9 @@ class KiyuBot(discord.Client):
         
         # Initialise PSO2 chanel list
         self.pso2_channels = load_file('kiyubot/resources/pso2.txt')
+        
+        # Initialise Cleverbot
+        self.cleverwrap = CleverWrap("CCCjbJptJO7_nJWmpx0EBFSyIxw")
         
         # Create pso2_channels (empty list) if it doesn't exist
         if len(self.pso2_channels) == 0:
@@ -1241,9 +1244,7 @@ class KiyuBot(discord.Client):
             # Cleverbot Interaction when bot
             if message_content.find(self.user.mention) != -1:
                 string_sent = message_content.replace(self.user.mention, '').strip()
-                
-                cb = Cleverbot()
-                string_reply = message.author.mention + ' ' + cb.ask(string_sent)
+                string_reply = message.author.mention + ' ' + self.cleverwrap.say(string_sent)
                 
                 sentmsg = await self.safe_send_message(
                         message.channel, string_reply

@@ -63,6 +63,8 @@ class Config:
         self.microsoftkey = config.get('Credentials', 'MicrosoftKey', fallback=ConfigDefaults.microsoftkey)
         self.microsoftsecret = config.get('Credentials', 'MicrosoftSecret', fallback=ConfigDefaults.microsoftsecret)
         
+        self.cleverbotkey = config.get('Credentials', 'CleverbotKey', fallback=ConfigDefaults.cleverbotkey)
+        
         self.auth = None
 
         self.owner_id = config.get('Permissions', 'OwnerID', fallback=ConfigDefaults.owner_id)
@@ -151,6 +153,8 @@ class ConfigDefaults:
     
     microsoftkey = None
     microsoftsecret = None
+    
+    cleverbotkey = None
 
     owner_id = None
     command_prefix = '!'
